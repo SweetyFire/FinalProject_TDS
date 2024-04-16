@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
@@ -10,7 +11,6 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         InitComponents();
-        InitInput();
     }
 
     private void FixedUpdate()
@@ -25,13 +25,10 @@ public class PlayerController : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
     }
 
-    private void InitInput()
+    public void OnMove(InputAction.CallbackContext ctx)
     {
-        InputManager.Instance.OnMove += OnMove;
-    }
-
-    private void OnMove(Vector2 input)
-    {
+        Vector2 input = ctx.ReadValue<Vector2>();
         _moveVelocity = new(input.x, 0f, input.y);
+        _moveVelocity = Quaternion.Euler(0f, -45f, 0f) * _moveVelocity;
     }
 }

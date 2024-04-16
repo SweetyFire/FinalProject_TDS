@@ -1,15 +1,13 @@
-using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(-1)]
 public class InputManager : MonoBehaviour
 {
-    public static InputManager Instance { get; private set; }
+    public InputManager Instance { get; private set; }
+    public int NumberOfPlayers { get; private set; } = 1;
 
-    public event Action<Vector2> OnMove;
-    public event Action OnShoot;
-
-    private PlayerControls _controls;
+    private PlayerInputManager _manager;
 
     private void Awake()
     {
@@ -23,25 +21,11 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        _controls = new();
-        InitEvents();
+        InitComponents();
     }
 
-    private void OnEnable()
+    private void InitComponents()
     {
-        _controls.Enable();
-    }
-
-    private void OnDisable()
-    {
-        _controls.Disable();
-    }
-
-    private void InitEvents()
-    {
-        _controls.Player.Move.performed += ctx => OnMove?.Invoke(ctx.ReadValue<Vector2>());
-        _controls.Player.Move.canceled += ctx => OnMove?.Invoke(ctx.ReadValue<Vector2>());
-
-        _controls.Player.Shoot.canceled += ctx => OnShoot?.Invoke();
+        _manager = GetComponent<PlayerInputManager>();
     }
 }
