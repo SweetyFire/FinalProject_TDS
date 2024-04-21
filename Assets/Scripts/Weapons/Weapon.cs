@@ -6,21 +6,21 @@ public abstract class Weapon : MonoBehaviour
     [SerializeField] protected float _damage;
     [SerializeField] protected float _attackRate;
 
+    public float Damage => _damage;
+    public CreatureWeapon Owner => _owner;
+
     protected CreatureWeapon _owner;
     protected Collider _collider;
     protected float _timeToAttack;
 
     private void Awake()
     {
-        _collider = GetComponent<Collider>();
+        InitComponents();
     }
 
-    private void Update()
+    protected virtual void Update()
     {
-        if (_timeToAttack > 0f)
-        {
-            _timeToAttack -= Time.deltaTime;
-        }
+        TimeToAttackUpdate();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -40,12 +40,34 @@ public abstract class Weapon : MonoBehaviour
         _collider.enabled = true;
     }
 
-    public abstract void Attack();
+    public void Attack()
+    {
+        if (_owner == null) return;
+        if (_timeToAttack > 0) return;
+
+        _timeToAttack = _attackRate;
+        AttackStart();
+    }
+
+    protected abstract void AttackStart();
+
+    private void InitComponents()
+    {
+        _collider = GetComponent<Collider>();
+    }
 
     private void TryPickup(Collider other)
     {
         if (!other.TryGetComponent(out CreatureWeapon weapon)) return;
         if (!weapon.TryAddWeapon(this)) return;
         Pickup(weapon);
+    }
+
+    private void TimeToAttackUpdate()
+    {
+        if (_timeToAttack > 0f)
+        {
+            _timeToAttack -= Time.deltaTime;
+        }
     }
 }

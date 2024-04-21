@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : CreatureController
 {
     [SerializeField] private float _walkSpeed = 150f;
     [SerializeField] private float _rotationSpeed = 500f;
@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 input = ctx.ReadValue<Vector2>();
         _moveVelocity = new(input.x, 0f, input.y);
-        _moveVelocity = Quaternion.Euler(0f, _cameraAngle, 0f) * _moveVelocity;
+        _moveVelocity = _moveVelocity.RotateTo(0f, _cameraAngle, 0f);
     }
 
     public void OnLook(InputAction.CallbackContext ctx)
@@ -50,8 +50,9 @@ public class PlayerController : MonoBehaviour
         _mousePosition = ctx.ReadValue<Vector2>();
     }
 
-    private void InitComponents()
+    protected override void InitComponents()
     {
+        base.InitComponents();
         _rb = GetComponent<Rigidbody>();
         _weapon = GetComponent<PlayerWeapon>();
     }
@@ -64,31 +65,42 @@ public class PlayerController : MonoBehaviour
     private void LookUpdate()
     {
         Quaternion rotation;
+        Vector3 lookVelocity;
 
         if (_weapon.IsAttacking)
         {
             if (_playerInput.currentControlScheme == "Keyboard")
             {
-                Vector2 screenPos = _camera.WorldToScreenPoint(transform.position);
-                Vector2 direction = (_mousePosition - screenPos).normalized;
-                Vector3 velocity = new(direction.x, 0f, direction.y);
-                velocity = Quaternion.Euler(0f, _cameraAngle, 0f) * velocity;
-                rotation = Quaternion.LookRotation(velocity, Vector3.up);
+                Ray mouseRay = _camera.ScreenPointToRay(_mousePosition);
+                if (Physics.SphereCast(mouseRay, 0.1f, out RaycastHit hit))
+                {
+                    Vector3 mouseInWorld = hit.point;
+                    lookVelocity = (mouseInWorld - transform.position).normalized;
+                    lookVelocity = new(lookVelocity.x, 0f, lookVelocity.z);
+                }
+                else
+                {
+                    Vector2 onScreenPos = _camera.WorldToScreenPoint(transform.position);
+                    lookVelocity = (_mousePosition - onScreenPos).normalized;
+                    lookVelocity = new(lookVelocity.x, 0f, lookVelocity.y);
+                    lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
+                }
+
             }
             else
             {
                 if (_lookInput == Vector2.zero) return;
-
-                Vector3 lookVelocity = new(_lookInput.x, 0f, _lookInput.y);
-                rotation = Quaternion.LookRotation(lookVelocity, Vector3.up);
+                lookVelocity = new(_lookInput.x, 0f, _lookInput.y);
+                lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
             }
         }
         else
         {
             if (_moveVelocity == Vector3.zero) return;
-            rotation = Quaternion.LookRotation(_moveVelocity, Vector3.up);
+            lookVelocity = _moveVelocity;
         }
-
+        
+        rotation = Quaternion.LookRotation(lookVelocity, Vector3.up);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, _rotationSpeed * Time.deltaTime);
     }
 }

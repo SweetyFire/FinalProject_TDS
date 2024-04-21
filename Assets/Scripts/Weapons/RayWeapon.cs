@@ -1,19 +1,13 @@
 using UnityEngine;
 
-public class RayWeapon : Weapon
+public class RayWeapon : AimWeapon
 {
     [Header("Ray")]
     [SerializeField] private float _attackDistance;
     [SerializeField] private float _attackRadius;
-    [SerializeField] protected Transform _attackPoint;
 
-    public override void Attack()
+    protected override void AttackStart()
     {
-        if (_timeToAttack > 0f) return;
-
-        _timeToAttack = _attackRate;
-
-        Debug.Log("Pow!");
         if (Physics.SphereCast(_attackPoint.position, _attackRadius, _attackPoint.forward, out RaycastHit hit, _attackDistance))
         {
             if (hit.collider.TryGetComponent(out CreatureHealth health))
@@ -21,14 +15,16 @@ public class RayWeapon : Weapon
                 if (health.Team != _owner.Team)
                 {
                     health.TakeDamage(_damage);
-                    Debug.Log($"{health.gameObject.name} attacked!");
                 }
             }
         }
     }
 
-    private void OnDrawGizmos()
+#if UNITY_EDITOR
+    protected override void OnDrawGizmosSelected()
     {
+        base.OnDrawGizmosSelected();
+
         Gizmos.color = Color.red;
         if (Physics.SphereCast(_attackPoint.position, _attackRadius, _attackPoint.forward, out RaycastHit hit, _attackDistance))
         {
@@ -41,4 +37,5 @@ public class RayWeapon : Weapon
             Gizmos.DrawWireSphere(_attackPoint.forward * _attackDistance + _attackPoint.position, _attackRadius);
         }
     }
+#endif
 }

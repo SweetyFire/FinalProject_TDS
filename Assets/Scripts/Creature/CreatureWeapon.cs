@@ -6,9 +6,11 @@ public abstract class CreatureWeapon : MonoBehaviour
 
     public int Team => _health.Team;
     public bool IsAttacking => _isAttacking;
+    public CreatureController Controller => _controller;
 
     protected Weapon _weapon;
     protected CreatureHealth _health;
+    protected CreatureController _controller;
     private bool _isAttacking;
 
     private void Awake()
@@ -50,6 +52,7 @@ public abstract class CreatureWeapon : MonoBehaviour
     protected virtual void InitComponents()
     {
         _health = GetComponent<CreatureHealth>();
+        _controller = GetComponent<CreatureController>();
     }
 
     private void AttackUpdate()

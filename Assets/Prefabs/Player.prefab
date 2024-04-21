@@ -196,7 +196,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 100
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -392,6 +392,18 @@ MonoBehaviour:
     m_ActionName: Player/Shoot[/Mouse/leftButton]
   - m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 7673594962571509628}
+        m_TargetAssemblyTypeName: PlayerWeapon, Assembly-CSharp
+        m_MethodName: OnAttack
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
       - m_Target: {fileID: 7227366348326573795}
         m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
         m_MethodName: OnLook
@@ -572,7 +584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52130dd7257b1af4186e6a82420920c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _walkSpeed: 180
+  _walkSpeed: 260
   _rotationSpeed: 800
   _playerInput: {fileID: 593675920225913249}
   _camera: {fileID: 1950970314000821076}
