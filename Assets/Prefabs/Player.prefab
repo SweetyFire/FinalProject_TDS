@@ -326,7 +326,7 @@ Transform:
   m_GameObject: {fileID: 5058221689075305999}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -496,7 +496,7 @@ GameObject:
   - component: {fileID: 7227366348326573795}
   - component: {fileID: 7673594962571509628}
   - component: {fileID: 7537160715043592004}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -531,8 +531,8 @@ Rigidbody:
   m_GameObject: {fileID: 8666453712753558413}
   serializedVersion: 4
   m_Mass: 1
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
+  m_Drag: 0
+  m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -556,7 +556,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8666453712753558413}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: ada8f94dd596fab4daf23c7f96e8158e, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -584,8 +584,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52130dd7257b1af4186e6a82420920c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _walkSpeed: 260
+  _walkSpeed: 6
   _rotationSpeed: 800
+  _maxSlopeAngle: 40
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
   _playerInput: {fileID: 593675920225913249}
   _camera: {fileID: 1950970314000821076}
 --- !u!114 &7673594962571509628
