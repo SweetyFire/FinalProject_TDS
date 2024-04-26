@@ -1,24 +1,35 @@
 using TMPro;
 using UnityEngine;
 
+[ExecuteAlways]
 public class UIAutoNameElement : MonoBehaviour
 {
 #if UNITY_EDITOR
-    protected virtual void UpdateText()
+    private TextMeshProUGUI _text;
+
+    private void Awake()
     {
-        if (!TryGetComponent(out TextMeshProUGUI text))
-        {
-            text = GetComponentInChildren<TextMeshProUGUI>();
-        }
-
-        if (text == null) return;
-
-        text.text = name;
+        InitComponents();
     }
 
-    private void OnValidate()
+    private void Update()
     {
         UpdateText();
+    }
+
+    protected virtual void UpdateText()
+    {
+        if (_text == null)
+            InitComponents();
+
+        if (_text == null) return;
+        _text.text = name;
+    }
+
+    private void InitComponents()
+    {
+        if (!TryGetComponent(out _text))
+            _text = GetComponentInChildren<TextMeshProUGUI>();
     }
 #endif
 }
