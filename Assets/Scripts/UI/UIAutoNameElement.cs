@@ -7,17 +7,12 @@ public class UIAutoNameElement : MonoBehaviour
 #if UNITY_EDITOR
     private TextMeshProUGUI _text;
 
-    private void Awake()
-    {
-        InitComponents();
-    }
-
     private void Update()
     {
-        UpdateText();
+        SetAutoName();
     }
 
-    protected virtual void UpdateText()
+    protected virtual void SetAutoName()
     {
         if (_text == null)
             InitComponents();
