@@ -9,6 +9,7 @@ public class PlayerController : CreatureController
     [SerializeField] private LayerMask _groundLayer;
     [SerializeField] private PlayerInput _playerInput;
     [SerializeField] private Camera _camera;
+    [SerializeField] private LayerMask _lookMask;
 
     private Rigidbody _rb;
     private Vector3 _moveDirection;
@@ -29,13 +30,13 @@ public class PlayerController : CreatureController
 
     private void Update()
     {
-        LookUpdate();
         GroundCheckUpdate();
     }
 
     private void FixedUpdate()
     {
         MoveFixedUpdate();
+        LookFixedUpdate();
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
@@ -133,7 +134,7 @@ public class PlayerController : CreatureController
         _cameraAngle = _camera.transform.localRotation.eulerAngles.y;
     }
 
-    private void LookUpdate()
+    private void LookFixedUpdate()
     {
         Quaternion rotation;
         Vector3 lookVelocity;
@@ -143,15 +144,15 @@ public class PlayerController : CreatureController
             if (_playerInput.currentControlScheme == "Keyboard")
             {
                 Ray mouseRay = _camera.ScreenPointToRay(_mousePosition);
-                if (Physics.SphereCast(mouseRay, 0.1f, out RaycastHit hit))
+                if (Physics.SphereCast(mouseRay, 0.1f, out RaycastHit hit, _camera.farClipPlane, _lookMask))
                 {
                     Vector3 mouseInWorld = hit.point;
-                    lookVelocity = (mouseInWorld - transform.position).normalized;
+                    lookVelocity = (mouseInWorld - _rb.position).normalized;
                     lookVelocity = new(lookVelocity.x, 0f, lookVelocity.z);
                 }
                 else
                 {
-                    Vector2 onScreenPos = _camera.WorldToScreenPoint(transform.position);
+                    Vector2 onScreenPos = _camera.WorldToScreenPoint(_rb.position);
                     lookVelocity = (_mousePosition - onScreenPos).normalized;
                     lookVelocity = new(lookVelocity.x, 0f, lookVelocity.y);
                     lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
@@ -172,7 +173,7 @@ public class PlayerController : CreatureController
         }
         
         rotation = Quaternion.LookRotation(lookVelocity, Vector3.up);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, _rotationSpeed * Time.deltaTime);
+        _rb.rotation = Quaternion.RotateTowards(_rb.rotation, rotation, _rotationSpeed);
     }
 
     private float GetSlopeAngle()
