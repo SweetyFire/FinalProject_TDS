@@ -218,6 +218,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1103823504}
     m_Modifications:
+    - target: {fileID: 1885872530620559110, guid: 7918d330a0134ce42990b6abd5d2e2dd,
+        type: 3}
+      propertyPath: m_text
+      value: Back
+      objectReference: {fileID: 0}
     - target: {fileID: 3649799792587115138, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: m_Name
@@ -2115,7 +2120,7 @@ PrefabInstance:
     - target: {fileID: 1885872530620559110, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: m_text
-      value: Start (1)
+      value: Settings
       objectReference: {fileID: 0}
     - target: {fileID: 3649799792587115138, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
@@ -3540,7 +3545,7 @@ PrefabInstance:
     - target: {fileID: 1885872530620559110, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: m_text
-      value: Settings (1)
+      value: Exit
       objectReference: {fileID: 0}
     - target: {fileID: 3649799792587115138, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
@@ -4005,6 +4010,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2023763669}
     m_Modifications:
+    - target: {fileID: 1885872530620559110, guid: 7918d330a0134ce42990b6abd5d2e2dd,
+        type: 3}
+      propertyPath: m_text
+      value: Yes
+      objectReference: {fileID: 0}
     - target: {fileID: 3649799792587115138, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: m_Name
@@ -5143,7 +5153,7 @@ PrefabInstance:
     - target: {fileID: 1885872530620559110, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: m_text
-      value: Yes (1)
+      value: No
       objectReference: {fileID: 0}
     - target: {fileID: 3649799792587115138, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
@@ -5577,6 +5587,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1529653027}
     m_Modifications:
+    - target: {fileID: 1885872530620559110, guid: 7918d330a0134ce42990b6abd5d2e2dd,
+        type: 3}
+      propertyPath: m_text
+      value: Start
+      objectReference: {fileID: 0}
     - target: {fileID: 3649799792587115138, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: m_Name
