@@ -4,14 +4,14 @@ public abstract class CreatureHealth : MonoBehaviour
 {
     [Header("Creature")]
     [SerializeField] protected float _maxValue = 100f;
+    [SerializeField] protected int _team;
     protected float _value;
 
     public bool IsAlive => _value > 0;
 
     public int Team => _team;
-    protected int _team;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         InitValues();
     }
@@ -30,7 +30,7 @@ public abstract class CreatureHealth : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void InitValues()
+    protected virtual void InitValues()
     {
         _value = _maxValue;
     }

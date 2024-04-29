@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class Projectile : MonoBehaviour
 {
     private float _damage = 1f;
     private float _flySpeed = 10f;
@@ -28,6 +28,11 @@ public class Bullet : MonoBehaviour
         DealDamage(other);
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        DealDamage(collision.collider);
+    }
+
     public void Init(float flySpeed, float maxFlyTime, Weapon weapon)
     {
         _flySpeed = flySpeed;
@@ -49,14 +54,25 @@ public class Bullet : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            DestroyMe();
         }
     }
 
     private void DealDamage(Collider other)
     {
-        if (!other.TryGetComponent(out CreatureHealth health)) return;
-        if (health.Team == _team) return;
-        health.TakeDamage(_damage);
+        if (other.TryGetComponent(out CreatureHealth health))
+        {
+            if (health.Team != _team)
+            {
+                health.TakeDamage(_damage);
+            }
+        }
+
+        DestroyMe();
+    }
+
+    private void DestroyMe()
+    {
+        Destroy(gameObject);
     }
 }

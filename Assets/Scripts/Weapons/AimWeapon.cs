@@ -1,14 +1,13 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract class AimWeapon : Weapon
 {
     [Header("Aim")]
     [SerializeField] protected Transform _attackPoint;
+    [SerializeField] protected LayerMask _attackMask;
 
-    protected float _maxInAirDistance = 100f;
     protected float _minInAirDistance = 3f;
-    protected float _maxInAirRadius = 0.1f;
+    protected float _maxInAirDistance = 100f;
 
     private void FixedUpdate()
     {
@@ -21,15 +20,15 @@ public abstract class AimWeapon : Weapon
 
         Vector3 lookPos;
         Vector3 castPos = _owner.transform.position + (Vector3.up * _owner.Controller.Height / 2f);
-        if (Physics.SphereCast(castPos, _maxInAirRadius, _owner.transform.forward, out RaycastHit hit, _maxInAirDistance))
+        if (Physics.Raycast(castPos, _owner.transform.forward, out RaycastHit hit, _maxInAirDistance, _attackMask))
         {
-            if (hit.distance > _minInAirDistance)
+            if (hit.distance < _minInAirDistance)
             {
-                lookPos = (_owner.transform.forward * hit.distance) + castPos;
+                lookPos = (_owner.transform.forward * _minInAirDistance) + castPos;
             }
             else
             {
-                lookPos = (_owner.transform.forward * _minInAirDistance) + castPos;
+                lookPos = (_owner.transform.forward * hit.distance) + castPos;
             }
         }
         else
@@ -49,25 +48,24 @@ public abstract class AimWeapon : Weapon
 
         Gizmos.color = Color.red;
         Vector3 castPos = _owner.transform.position + (Vector3.up * _owner.Controller.Height / 2f);
-        if (Physics.SphereCast(castPos, _maxInAirRadius, _owner.transform.forward, out RaycastHit hit, _maxInAirDistance))
+        if (Physics.Raycast(castPos, _owner.transform.forward, out RaycastHit hit, _maxInAirDistance, _attackMask))
         {
             float dist;
-            if (hit.distance > _minInAirDistance)
-            {
-                dist = hit.distance;
-            }
-            else
+            if (hit.distance < _minInAirDistance)
             {
                 dist = _minInAirDistance;
             }
+            else
+            {
+                dist = hit.distance;
+            }
 
+            Gizmos.color = Color.green;
             Gizmos.DrawRay(castPos, _owner.transform.forward * dist);
-            Gizmos.DrawWireSphere(_owner.transform.forward * dist + castPos, _maxInAirRadius);
         }
         else
         {
             Gizmos.DrawRay(castPos, _owner.transform.forward * _maxInAirDistance);
-            Gizmos.DrawWireSphere(_owner.transform.forward * _maxInAirDistance + castPos, _maxInAirRadius);
         }
     }
 #endif

@@ -3,10 +3,12 @@ using UnityEngine;
 public abstract class CreatureWeapon : MonoBehaviour
 {
     [SerializeField] protected Transform _attachPoint;
+    public Transform AttachPoint => _attachPoint;
 
     public int Team => _health.Team;
     public bool IsAttacking => _isAttacking;
     public CreatureController Controller => _controller;
+    public CreatureHealth Health => _health;
 
     protected Weapon _weapon;
     protected CreatureHealth _health;

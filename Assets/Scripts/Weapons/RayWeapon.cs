@@ -4,11 +4,10 @@ public class RayWeapon : AimWeapon
 {
     [Header("Ray")]
     [SerializeField] private float _attackDistance;
-    [SerializeField] private float _attackRadius;
 
     protected override void AttackStart()
     {
-        if (Physics.SphereCast(_attackPoint.position, _attackRadius, _attackPoint.forward, out RaycastHit hit, _attackDistance))
+        if (Physics.Raycast(_attackPoint.position, _attackPoint.forward, out RaycastHit hit, _attackDistance, _attackMask))
         {
             if (hit.collider.TryGetComponent(out CreatureHealth health))
             {
@@ -26,15 +25,14 @@ public class RayWeapon : AimWeapon
         base.OnDrawGizmosSelected();
 
         Gizmos.color = Color.red;
-        if (Physics.SphereCast(_attackPoint.position, _attackRadius, _attackPoint.forward, out RaycastHit hit, _attackDistance))
+        if (Physics.Raycast(_attackPoint.position, _attackPoint.forward, out RaycastHit hit, _attackDistance, _attackMask))
         {
+            Gizmos.color = Color.green;
             Gizmos.DrawRay(_attackPoint.position, _attackPoint.forward * hit.distance);
-            Gizmos.DrawWireSphere(_attackPoint.forward * hit.distance + _attackPoint.position, _attackRadius);
         }
         else
         {
             Gizmos.DrawRay(_attackPoint.position, _attackPoint.forward * _attackDistance);
-            Gizmos.DrawWireSphere(_attackPoint.forward * _attackDistance + _attackPoint.position, _attackRadius);
         }
     }
 #endif

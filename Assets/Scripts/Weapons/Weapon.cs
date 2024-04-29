@@ -13,7 +13,7 @@ public abstract class Weapon : MonoBehaviour
     protected Collider _collider;
     protected float _timeToAttack;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         InitComponents();
     }
@@ -28,13 +28,13 @@ public abstract class Weapon : MonoBehaviour
         TryPickup(other);
     }
 
-    public void Pickup(CreatureWeapon creature)
+    public virtual void Pickup(CreatureWeapon creature)
     {
         _owner = creature;
         _collider.enabled = false;
     }
 
-    public void Drop()
+    public virtual void Drop()
     {
         _owner = null;
         _collider.enabled = true;

@@ -4,15 +4,16 @@ using UnityEngine.AI;
 
 public class EnemyController : CreatureController
 {
-    [SerializeField] private float _minRotationSpeed = 100f;
-    [SerializeField] private float _maxRotationSpeed = 500f;
     [SerializeField] private float _viewingAngle = 90f;
     [SerializeField] private LayerMask _obstaclesMask;
+    [Header("Speed")]
+    [SerializeField] private float _walkSpeed = 4f;
     [SerializeField] private float _stoppingDistance = 3f;
+    [SerializeField] private float _minRotationSpeed = 100f;
+    [SerializeField] private float _maxRotationSpeed = 500f;
     [Header("Wandering")]
     [SerializeField] private float _wanderingSpeed = 3f;
-    [SerializeField] private float _walkSpeed = 4f;
-    [SerializeField] private float _wanderingRadius = 8f;
+    [SerializeField] private float _wanderingRadius = 10f;
     [SerializeField] private float _wanderingStoppingDistance = 1f;
 
     private NavMeshAgent _agent;
@@ -23,8 +24,8 @@ public class EnemyController : CreatureController
     private float _wanderingStoppedTimer;
     private bool _wanderingPosSelected;
 
-    private CreatureController _currentTarget;
-    private List<CreatureController> _creatureInSight = new();
+    private CreatureHealth _currentTarget;
+    private List<CreatureHealth> _creatureInSight = new();
 
     private Vector3 _spawnedPosition;
 
@@ -46,13 +47,13 @@ public class EnemyController : CreatureController
     {
         if (_currentTarget != null) return;
 
-        if (!other.TryGetComponent(out CreatureController creature)) return;
+        if (!other.TryGetComponent(out CreatureHealth creature)) return;
         _creatureInSight.Add(creature);
 
-        if (creature is not PlayerController player) return;
+        if (creature is not PlayerHealth player) return;
         if (!IsGoalWithinReach(player)) return;
 
-        NotifyAllies();
+        NotifyAllies(player);
         ChangeTarget(player);
     }
 
@@ -60,7 +61,7 @@ public class EnemyController : CreatureController
     {
         if (_currentTarget != null) return;
 
-        if (!other.TryGetComponent(out CreatureController creature)) return;
+        if (!other.TryGetComponent(out CreatureHealth creature)) return;
         if (!_creatureInSight.Contains(creature)) return;
         _creatureInSight.Remove(creature);
     }
@@ -79,18 +80,18 @@ public class EnemyController : CreatureController
         _agent.stoppingDistance = _wanderingStoppingDistance;
     }
 
-    private void NotifyAllies()
+    private void NotifyAllies(CreatureHealth target)
     {
         if (_currentTarget != null) return;
 
-        foreach (CreatureController creature in _creatureInSight)
+        foreach (CreatureHealth creature in _creatureInSight)
         {
-            if (creature is not EnemyController enemy) continue;
-            enemy.ChangeTarget(enemy);
+            if (creature is not EnemyHealth enemy) continue;
+            enemy.Controller.ChangeTarget(target);
         }
     }
 
-    private void ChangeTarget(CreatureController creature)
+    private void ChangeTarget(CreatureHealth creature)
     {
         _currentTarget = creature;
         if (_currentTarget != null)
@@ -111,15 +112,17 @@ public class EnemyController : CreatureController
         if (_currentTarget != null) return;
         if (_creatureInSight.Count <= 0) return;
 
-        foreach (CreatureController enemy in _creatureInSight)
+        foreach (CreatureHealth enemy in _creatureInSight)
         {
+            if (enemy is EnemyHealth) continue;
             if (!IsGoalWithinReach(enemy)) continue;
-            _currentTarget = enemy;
+
+            ChangeTarget(enemy);
             break;
         }
     }
 
-    private bool IsGoalWithinReach(CreatureController enemy)
+    private bool IsGoalWithinReach(CreatureHealth enemy)
     {
         Vector3 direction = enemy.transform.position - transform.position;
         if (GetAngle(direction) > _viewingAngle)
