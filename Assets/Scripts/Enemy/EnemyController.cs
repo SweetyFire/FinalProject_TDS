@@ -4,22 +4,34 @@ using UnityEngine.AI;
 
 public class EnemyController : CreatureController
 {
-    [SerializeField] private float _minRotationSpeed = 5f;
-    [SerializeField] private float _maxRotationSpeed = 16f;
+    [SerializeField] private float _minRotationSpeed = 100f;
+    [SerializeField] private float _maxRotationSpeed = 500f;
     [SerializeField] private float _viewingAngle = 90f;
     [SerializeField] private LayerMask _obstaclesMask;
+    [SerializeField] private float _stoppingDistance = 3f;
+    [Header("Wandering")]
+    [SerializeField] private float _wanderingSpeed = 3f;
+    [SerializeField] private float _walkSpeed = 4f;
+    [SerializeField] private float _wanderingRadius = 8f;
+    [SerializeField] private float _wanderingStoppingDistance = 1f;
 
     private NavMeshAgent _agent;
-    private Rigidbody _rb;
 
     private float _actionTimer;
     private float _timeBetweenActions = 0.5f;
+    
+    private float _wanderingStoppedTimer;
+    private bool _wanderingPosSelected;
+
     private CreatureController _currentTarget;
-    private List<CreatureController> _enemiesInSight = new();
+    private List<CreatureController> _creatureInSight = new();
+
+    private Vector3 _spawnedPosition;
 
     private void Awake()
     {
         InitComponents();
+        InitValues();
     }
 
     private void Update()
@@ -30,36 +42,76 @@ public class EnemyController : CreatureController
         ActionTimerUpdate();
     }
 
-    public void OnEnemyEnterTrigger(Collider other)
+    public void OnCreatureEnterTrigger(Collider other)
     {
-        if (!other.TryGetComponent(out PlayerController player)) return;
-        _enemiesInSight.Add(player);
+        if (_currentTarget != null) return;
+
+        if (!other.TryGetComponent(out CreatureController creature)) return;
+        _creatureInSight.Add(creature);
+
+        if (creature is not PlayerController player) return;
         if (!IsGoalWithinReach(player)) return;
 
-        _currentTarget = player;
+        NotifyAllies();
+        ChangeTarget(player);
     }
 
-    public void OnEnemyExitTrigger(Collider other)
+    public void OnCreatureExitTrigger(Collider other)
     {
-        if (!other.TryGetComponent(out PlayerController player)) return;
-        if (!_enemiesInSight.Contains(player)) return;
-        _enemiesInSight.Remove(player);
+        if (_currentTarget != null) return;
+
+        if (!other.TryGetComponent(out CreatureController creature)) return;
+        if (!_creatureInSight.Contains(creature)) return;
+        _creatureInSight.Remove(creature);
     }
 
     protected override void InitComponents()
     {
         base.InitComponents();
         _agent = GetComponent<NavMeshAgent>();
-        _rb = GetComponent<Rigidbody>();
+    }
+
+    private void InitValues()
+    {
+        _spawnedPosition = transform.position;
+        _agent.updateRotation = false;
+        _agent.speed = _wanderingSpeed;
+        _agent.stoppingDistance = _wanderingStoppingDistance;
+    }
+
+    private void NotifyAllies()
+    {
+        if (_currentTarget != null) return;
+
+        foreach (CreatureController creature in _creatureInSight)
+        {
+            if (creature is not EnemyController enemy) continue;
+            enemy.ChangeTarget(enemy);
+        }
+    }
+
+    private void ChangeTarget(CreatureController creature)
+    {
+        _currentTarget = creature;
+        if (_currentTarget != null)
+        {
+            _agent.speed = _walkSpeed;
+            _agent.stoppingDistance = _stoppingDistance;
+        }
+        else
+        {
+            _agent.speed = _wanderingSpeed;
+            _agent.stoppingDistance = _wanderingStoppingDistance;
+        }
     }
 
     private void SightUpdate()
     {
         if (!CanTakeAction()) return;
         if (_currentTarget != null) return;
-        if (_enemiesInSight.Count <= 0) return;
+        if (_creatureInSight.Count <= 0) return;
 
-        foreach (CreatureController enemy in _enemiesInSight)
+        foreach (CreatureController enemy in _creatureInSight)
         {
             if (!IsGoalWithinReach(enemy)) continue;
             _currentTarget = enemy;
@@ -79,12 +131,52 @@ public class EnemyController : CreatureController
         return true;
     }
 
+    private bool IsGoalWithinReach(Vector3 position, float maxDistance, out Vector3 navMeshPosition)
+    {
+        navMeshPosition = position;
+        NavMesh.SamplePosition(position, out NavMeshHit hit, maxDistance, NavMesh.AllAreas);
+
+        NavMeshPath path = new();
+        if (!_agent.CalculatePath(hit.position, path))
+            return false;
+
+        navMeshPosition = hit.position;
+        return true;
+    }
+
     private void WalkUpdate()
     {
         if (!CanTakeAction()) return;
-        if (_currentTarget == null) return;
 
-        _agent.destination = _currentTarget.transform.position;
+        if (_currentTarget == null)
+        {
+            if (_wanderingStoppedTimer > 0f)
+            {
+                _wanderingStoppedTimer -= _timeBetweenActions;
+                return;
+            }
+
+            if (!_wanderingPosSelected)
+            {
+                Vector3 targetPos = _spawnedPosition.RandomPointAroundXZ(_wanderingRadius);
+                if (!IsGoalWithinReach(targetPos, _wanderingRadius, out targetPos)) return;
+
+                _agent.destination = targetPos;
+                _wanderingPosSelected = true;
+            }
+            else
+            {
+                if (_agent.remainingDistance <= _agent.stoppingDistance)
+                {
+                    _wanderingPosSelected = false;
+                    _wanderingStoppedTimer = Random.Range(1f, 3f);
+                }
+            }
+        }
+        else
+        {
+            _agent.destination = _currentTarget.transform.position;
+        }
     }
 
     private bool CanTakeAction()
@@ -108,8 +200,6 @@ public class EnemyController : CreatureController
 
     private void LookUpdate()
     {
-        if (_currentTarget == null) return;
-
         Vector3 direction = GetLookDirection();
         float rotationSpeed;
         if (!IsStopped())
@@ -129,15 +219,15 @@ public class EnemyController : CreatureController
 
     private Vector3 GetLookDirection()
     {
+        Vector3 steeringTargetDirection = (_agent.steeringTarget - transform.position).normalized;
+
+        if (_currentTarget == null)
+            return steeringTargetDirection;
+
         if (_agent.remainingDistance > _agent.stoppingDistance * 2f)
-            return (_agent.steeringTarget - transform.position).normalized;
+            return steeringTargetDirection;
         else
             return (_currentTarget.transform.position - transform.position).normalized;
-    }
-
-    private Vector3 GetMoveDirection()
-    {
-        return (_currentTarget.transform.position - transform.position).normalized;
     }
 
     private float GetAngle(Vector3 direction)

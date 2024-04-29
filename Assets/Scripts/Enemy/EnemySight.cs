@@ -11,11 +11,11 @@ public class EnemySight : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        _owner.OnEnemyEnterTrigger(other);
+        _owner.OnCreatureEnterTrigger(other);
     }
 
     private void OnTriggerExit(Collider other)
     {
-        _owner.OnEnemyExitTrigger(other);
+        _owner.OnCreatureExitTrigger(other);
     }
 }
