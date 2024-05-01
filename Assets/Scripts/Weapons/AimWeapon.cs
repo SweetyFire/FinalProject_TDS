@@ -46,7 +46,7 @@ public abstract class AimWeapon : Weapon
     {
         if (_owner == null) return;
 
-        Gizmos.color = Color.red;
+        Gizmos.color = Color.magenta;
         Vector3 castPos = _owner.transform.position + (Vector3.up * _owner.Controller.Height / 2f);
         if (Physics.Raycast(castPos, _owner.transform.forward, out RaycastHit hit, _maxInAirDistance, _attackMask))
         {
@@ -60,7 +60,7 @@ public abstract class AimWeapon : Weapon
                 dist = hit.distance;
             }
 
-            Gizmos.color = Color.green;
+            Gizmos.color = Color.blue;
             Gizmos.DrawRay(castPos, _owner.transform.forward * dist);
         }
         else

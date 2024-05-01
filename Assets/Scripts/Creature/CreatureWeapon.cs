@@ -10,22 +10,23 @@ public abstract class CreatureWeapon : MonoBehaviour
     public CreatureController Controller => _controller;
     public CreatureHealth Health => _health;
 
+    public Weapon Weapon => _weapon;
     protected Weapon _weapon;
     protected CreatureHealth _health;
     protected CreatureController _controller;
     private bool _isAttacking;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         InitComponents();
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         AttackUpdate();
     }
 
-    public bool TryAddWeapon(Weapon weapon)
+    public virtual bool TryAddWeapon(Weapon weapon)
     {
         if (_weapon == null)
         {
@@ -35,10 +36,7 @@ public abstract class CreatureWeapon : MonoBehaviour
             return true;
         }
         else
-        {
-
             return false;
-        }
     }
 
     public void AttackStart()
@@ -65,7 +63,7 @@ public abstract class CreatureWeapon : MonoBehaviour
         }
     }
 
-    private void Attack()
+    protected void Attack()
     {
         if (_weapon == null) return;
         _weapon.Attack();

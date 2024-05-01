@@ -7,8 +7,10 @@ public abstract class CreatureHealth : MonoBehaviour
     [SerializeField] protected int _team;
     protected float _value;
 
-    public bool IsAlive => _value > 0;
+    public float MaxValue => _maxValue;
+    public float Value => _value;
 
+    public bool IsAlive => _value > 0;
     public int Team => _team;
 
     protected virtual void Awake()
@@ -16,7 +18,7 @@ public abstract class CreatureHealth : MonoBehaviour
         InitValues();
     }
 
-    public void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage)
     {
         _value = Mathf.Clamp(_value - damage, 0, _maxValue);
         if (_value <= 0)

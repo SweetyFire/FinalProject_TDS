@@ -70,6 +70,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _damage: 8
   _attackRate: 0.5
+  _attackDistance: 1.2
   _attackCollider: {fileID: 4690587580541428831}
 --- !u!1 &3035608814407218612
 GameObject:

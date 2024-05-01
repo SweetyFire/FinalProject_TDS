@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 public class EnemyController : CreatureController
 {
@@ -8,13 +10,18 @@ public class EnemyController : CreatureController
     [SerializeField] private LayerMask _obstaclesMask;
     [Header("Speed")]
     [SerializeField] private float _walkSpeed = 4f;
-    [SerializeField] private float _stoppingDistance = 3f;
+    [SerializeField] private float _minStoppingDistance = 3f;
+    [SerializeField] private float _maxStoppingDistance = 10f;
     [SerializeField] private float _minRotationSpeed = 100f;
     [SerializeField] private float _maxRotationSpeed = 500f;
     [Header("Wandering")]
     [SerializeField] private float _wanderingSpeed = 3f;
     [SerializeField] private float _wanderingRadius = 10f;
     [SerializeField] private float _wanderingStoppingDistance = 1f;
+    [Header("Flex")]
+    [SerializeField] private float _minFlexTime = 1f;
+    [SerializeField] private float _maxFlexTime = 2f;
+    [SerializeField] private float _chanceToFlex = 45f;
 
     private NavMeshAgent _agent;
 
@@ -24,10 +31,18 @@ public class EnemyController : CreatureController
     private float _wanderingStoppedTimer;
     private bool _wanderingPosSelected;
 
+    public CreatureHealth CurrentTarget => _currentTarget;
     private CreatureHealth _currentTarget;
     private List<CreatureHealth> _creatureInSight = new();
 
+    public bool SeeCurrentTarget => _seeCurrentTarget;
+    private bool _seeCurrentTarget;
+
+    private EnemyWeapon _weapon;
     private Vector3 _spawnedPosition;
+
+    private float _flexTime;
+    private Vector3 _flexDirection;
 
     private void Awake()
     {
@@ -40,6 +55,7 @@ public class EnemyController : CreatureController
         SightUpdate();
         WalkUpdate();
         LookUpdate();
+        FlexUpdate();
         ActionTimerUpdate();
     }
 
@@ -70,6 +86,7 @@ public class EnemyController : CreatureController
     {
         base.InitComponents();
         _agent = GetComponent<NavMeshAgent>();
+        _weapon = GetComponent<EnemyWeapon>();
     }
 
     private void InitValues()
@@ -94,31 +111,71 @@ public class EnemyController : CreatureController
     private void ChangeTarget(CreatureHealth creature)
     {
         _currentTarget = creature;
-        if (_currentTarget != null)
-        {
-            _agent.speed = _walkSpeed;
-            _agent.stoppingDistance = _stoppingDistance;
-        }
-        else
+        ChangeSpeed();
+    }
+
+    private void ChangeSpeed()
+    {
+        if (_currentTarget == null)
         {
             _agent.speed = _wanderingSpeed;
             _agent.stoppingDistance = _wanderingStoppingDistance;
         }
+        else
+        {
+            _agent.speed = _walkSpeed;
+            if (_weapon == null)
+            {
+                _agent.stoppingDistance = _minStoppingDistance;
+            }
+            else
+            {
+                SetStoppingDistanceWeapon();
+            }
+        }
+    }
+
+    private void SetStoppingDistanceWeapon()
+    {
+        _agent.stoppingDistance = _weapon.Weapon.AttackDistance - 1f;
+        _agent.stoppingDistance = Mathf.Clamp(_agent.stoppingDistance, _minStoppingDistance, _maxStoppingDistance);
     }
 
     private void SightUpdate()
     {
         if (!CanTakeAction()) return;
-        if (_currentTarget != null) return;
         if (_creatureInSight.Count <= 0) return;
 
-        foreach (CreatureHealth enemy in _creatureInSight)
+        if (_currentTarget != null)
         {
-            if (enemy is EnemyHealth) continue;
-            if (!IsGoalWithinReach(enemy)) continue;
+            if (SeeTarget(_currentTarget))
+            {
+                _seeCurrentTarget = true;
+                SetStoppingDistanceWeapon();
+            }
+            else
+            {
+                _seeCurrentTarget = false;
+                _agent.stoppingDistance = _minStoppingDistance;
+            }
+        }
+        else
+        {
+            _seeCurrentTarget = false;
+            for (int i = _creatureInSight.Count - 1; i >= 0; i--)
+            {
+                if (_creatureInSight[i] == null)
+                {
+                    _creatureInSight.RemoveAt(i);
+                    continue;
+                }
 
-            ChangeTarget(enemy);
-            break;
+                if (_creatureInSight[i] is EnemyHealth) continue;
+                if (!IsGoalWithinReach(_creatureInSight[i])) continue;
+
+                ChangeTarget(_creatureInSight[i]);
+                break;
+            }
         }
     }
 
@@ -128,7 +185,7 @@ public class EnemyController : CreatureController
         if (GetAngle(direction) > _viewingAngle)
             return false;
 
-        if (Physics.Linecast(transform.position + Vector3.up, enemy.transform.position + Vector3.up, _obstaclesMask))
+        if (!SeeTarget(enemy))
             return false;
 
         return true;
@@ -147,9 +204,15 @@ public class EnemyController : CreatureController
         return true;
     }
 
+    private bool SeeTarget(CreatureHealth enemy)
+    {
+        return !Physics.Linecast(transform.position + Vector3.up, enemy.transform.position + Vector3.up, _obstaclesMask);
+    }
+
     private void WalkUpdate()
     {
         if (!CanTakeAction()) return;
+        ChangeSpeed();
 
         if (_currentTarget == null)
         {
@@ -179,7 +242,69 @@ public class EnemyController : CreatureController
         else
         {
             _agent.destination = _currentTarget.transform.position;
+            FlexAction();
         }
+    }
+
+    private void FlexAction()
+    {
+        if (_flexTime > 0f)
+        {
+            _flexTime -= _timeBetweenActions;
+            return;
+        }
+
+        float rand = Random.Range(0f, 100f);
+        if (rand <= _chanceToFlex)
+        {
+            if (rand <= _chanceToFlex / 2f)
+            {
+                _flexDirection = Vector3.forward;
+            }
+            else
+            {
+                _flexDirection = -Vector3.forward;
+            }
+        }
+        else
+        {
+            _flexDirection = Vector3.zero;
+        }
+
+        rand = Random.Range(0f, 100f);
+        if (rand <= _chanceToFlex)
+        {
+            if (rand <= _chanceToFlex / 2f)
+            {
+                _flexDirection += Vector3.right;
+            }
+            else
+            {
+                _flexDirection -= Vector3.right;
+            }
+        }
+        else
+        {
+            if (_flexDirection.z != 0f)
+                _flexDirection = Vector3.zero;
+        }
+
+        if (_flexDirection != Vector3.zero)
+        {
+            Vector3 lookDirection = GetLookDirection();
+            _flexDirection += lookDirection;
+            _flexDirection.Normalize();
+        }
+
+        _flexTime = Random.Range(_minFlexTime, _maxFlexTime);
+    }
+
+    private void FlexUpdate()
+    {
+        if (!_seeCurrentTarget) return;
+        if (_flexTime <= 0f) return;
+
+        _agent.Move(_agent.speed * Time.deltaTime * _flexDirection);
     }
 
     private bool CanTakeAction()

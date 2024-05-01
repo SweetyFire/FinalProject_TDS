@@ -70,11 +70,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _damage: 2
   _attackRate: 0.8
+  _attackDistance: 50
   _attackPoint: {fileID: 1625650711921222731}
   _attackMask:
     serializedVersion: 2
     m_Bits: 193
-  _attackDistance: 30
 --- !u!1 &1310375294451904265
 GameObject:
   m_ObjectHideFlags: 0

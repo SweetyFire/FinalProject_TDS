@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class RayWeapon : AimWeapon
 {
-    [Header("Ray")]
-    [SerializeField] private float _attackDistance;
-
     protected override void AttackStart()
     {
         if (Physics.Raycast(_attackPoint.position, _attackPoint.forward, out RaycastHit hit, _attackDistance, _attackMask))
