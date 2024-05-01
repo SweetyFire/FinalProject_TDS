@@ -5,15 +5,20 @@ public abstract class Weapon : MonoBehaviour
     [Header("Weapon")]
     [SerializeField] protected float _damage;
     [SerializeField] protected float _attackRate;
+    [SerializeField] protected float _attackDistance;
 
     public float Damage => _damage;
+    public float AttackRate => _attackRate;
+    public float AttackDistance => _attackDistance;
     public CreatureWeapon Owner => _owner;
 
     protected CreatureWeapon _owner;
     protected Collider _collider;
     protected float _timeToAttack;
 
-    private void Awake()
+    private bool _initialized;
+
+    protected virtual void Awake()
     {
         InitComponents();
     }
@@ -28,13 +33,14 @@ public abstract class Weapon : MonoBehaviour
         TryPickup(other);
     }
 
-    public void Pickup(CreatureWeapon creature)
+    public virtual void Pickup(CreatureWeapon creature)
     {
+        InitComponents();
         _owner = creature;
         _collider.enabled = false;
     }
 
-    public void Drop()
+    public virtual void Drop()
     {
         _owner = null;
         _collider.enabled = true;
@@ -42,8 +48,8 @@ public abstract class Weapon : MonoBehaviour
 
     public void Attack()
     {
-        if (_owner == null) return;
         if (_timeToAttack > 0) return;
+        if (_owner == null) return;
 
         _timeToAttack = _attackRate;
         AttackStart();
@@ -53,7 +59,10 @@ public abstract class Weapon : MonoBehaviour
 
     private void InitComponents()
     {
+        if (_initialized) return;
+
         _collider = GetComponent<Collider>();
+        _initialized = true;
     }
 
     private void TryPickup(Collider other)

@@ -1,4 +1,5 @@
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -12,16 +13,20 @@ public class UIAutoNameElement : MonoBehaviour
         SetAutoName();
     }
 
-    protected virtual void SetAutoName()
+    protected void SetAutoName()
     {
         if (_text == null)
-            InitComponents();
+            InitAutoNameTextComponent();
 
         if (_text == null) return;
+
+        Undo.RecordObject(_text, "Auto name");
         _text.text = name;
+        EditorUtility.SetDirty(_text);
+        PrefabUtility.RecordPrefabInstancePropertyModifications(_text);
     }
 
-    private void InitComponents()
+    protected virtual void InitAutoNameTextComponent()
     {
         if (!TryGetComponent(out _text))
             _text = GetComponentInChildren<TextMeshProUGUI>();

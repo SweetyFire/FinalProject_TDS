@@ -12,7 +12,7 @@ GameObject:
   m_Layer: 0
   m_Name: AttackPoint
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 7148428337604731935, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1990324709173929113}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.131, z: 0.474}
+  m_LocalPosition: {x: 0.0197, y: 0.131, z: 0.454}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -217,10 +217,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _damage: 4
   _attackRate: 0.5
+  _attackDistance: 50
   _attackPoint: {fileID: 6288790056834030548}
-  _bulletFlySpeed: 30
-  _bulletMaxFlyTime: 5
-  _bulletPrefab: {fileID: 4630370527262815043, guid: 04304655f66ca634684e3980686a45c6,
+  _attackMask:
+    serializedVersion: 2
+    m_Bits: 193
+  _projectileFlySpeed: 1
+  _projectilePrefab: {fileID: 4630370527262815043, guid: 04304655f66ca634684e3980686a45c6,
     type: 3}
 --- !u!1 &7609283001306705736
 GameObject:

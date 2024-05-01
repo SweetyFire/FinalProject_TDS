@@ -1,19 +1,15 @@
 using UnityEngine;
 
-public class RayWeapon : AimWeapon
+public class ProjectileWeapon : AimWeapon
 {
+    [Header("Projectile")]
+    [SerializeField] private float _projectileFlySpeed = 1f;
+    [SerializeField] private Projectile _projectilePrefab;
+
     protected override void AttackStart()
     {
-        if (Physics.Raycast(_attackPoint.position, _attackPoint.forward, out RaycastHit hit, _attackDistance, _attackMask))
-        {
-            if (hit.collider.TryGetComponent(out CreatureHealth health))
-            {
-                if (health.Team != _owner.Team)
-                {
-                    health.TakeDamage(_damage);
-                }
-            }
-        }
+        Projectile projectile = Instantiate(_projectilePrefab, _attackPoint.position, _attackPoint.rotation);
+        projectile.Init(_projectileFlySpeed, _attackDistance, this);
     }
 
 #if UNITY_EDITOR
