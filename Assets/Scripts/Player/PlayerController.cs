@@ -6,31 +6,27 @@ public class PlayerController : CreatureController
     [SerializeField] private float _walkSpeed = 5f;
     [SerializeField] private float _rotationSpeed = 500f;
     [SerializeField] private float _maxSlopeAngle = 45f;
-    [SerializeField] private LayerMask _groundLayer;
     [SerializeField] private PlayerInput _playerInput;
     [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _lookMask;
 
-    private Rigidbody _rb;
     private Vector3 _moveDirection;
     private Vector2 _lookDirection;
     private Vector2 _mousePosition;
     private float _cameraAngle;
     private PlayerWeapon _weapon;
-
-    private bool _isGrounded;
-    private RaycastHit _groundHit;
-    private float _groundCheckOffset = 0.1f;
+    private AbilityCaster _abilityCaster;
 
     private void Awake()
     {
         InitComponents();
         SetCameraAngle();
+        InitAbilities();
     }
 
     private void Update()
     {
-        GroundCheckUpdate();
+        GroundCheckUpdate(_moveDirection);
     }
 
     private void FixedUpdate()
@@ -56,45 +52,125 @@ public class PlayerController : CreatureController
         _mousePosition = ctx.ReadValue<Vector2>();
     }
 
+    public void OnFirstAbility(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.started) return;
+        _abilityCaster.ActivateAbility(0);
+    }
+
+    public void OnSecondAbility(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.started) return;
+        _abilityCaster.ActivateAbility(1);
+    }
+
+    public void OnUltimateAbility(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.started) return;
+        _abilityCaster.ActivateAbility(2);
+    }
+
+    public override void Push(Vector3 velocity)
+    {
+        _rb.AddForce(velocity, ForceMode.Impulse);
+    }
+
+    public override void Move(Vector3 velocity)
+    {
+        _rb.velocity = velocity;
+    }
+
+    public override void Move(float xVelocity, float zVelocity)
+    {
+        Vector3 moveVel = new(xVelocity, _rb.velocity.y, zVelocity);
+        _rb.velocity = moveVel;
+    }
+
+    public override void MoveToMovementDirection(float speed)
+    {
+        _rb.velocity = _moveDirection * speed;
+    }
+
+    public override void MoveToLookDirection(float speed)
+    {
+        _rb.velocity = transform.forward * speed;
+    }
+
     protected override void InitComponents()
     {
         base.InitComponents();
-        _rb = GetComponent<Rigidbody>();
         _weapon = GetComponent<PlayerWeapon>();
+        _abilityCaster = GetComponent<AbilityCaster>();
+    }
+
+    private void InitAbilities()
+    {
+        _abilityCaster.Init(this);
+
+        foreach (Ability ability in _abilityCaster.Abilities)
+        {
+            ability.OnStarted += OnAbilityStarted;
+            ability.OnCompleted += OnAbilityCompleted;
+        }
+    }
+
+    private void OnAbilityStarted(Ability ability)
+    {
+        if (!ability.EnableMoveInput)
+        {
+            DisableMove();
+        }
+
+        if (!ability.EnableLookInput)
+        {
+            DisableLook();
+        }
+    }
+
+    private void OnAbilityCompleted(Ability ability)
+    {
+        EnableMove();
+        EnableLook();
     }
 
     private void MoveFixedUpdate()
     {
-        float slopeAngle = GetSlopeAngle();
         _rb.useGravity = true;
 
-        Vector3 velocity;
-        if (slopeAngle > 0f)
+        if (DisabledMoveInput) return;
+
+        float slopeAngle = GetSlopeAngle();
+        if (IsGrounded)
         {
-            if (slopeAngle > _maxSlopeAngle)
+            Vector3 velocity;
+            if (slopeAngle > 0f)
             {
-                velocity = Vector3.zero;
-                velocity.y = _rb.velocity.y;
+                if (slopeAngle > _maxSlopeAngle)
+                {
+                    velocity = Vector3.zero;
+                    velocity.y = _rb.velocity.y;
+                }
+                else
+                {
+                    velocity = GetSlopeMoveDirection() * _walkSpeed;
+                    _rb.useGravity = false;
+                }
             }
             else
             {
-                velocity = GetSlopeMoveDirection() * _walkSpeed;
-                _rb.useGravity = false;
+                velocity = _moveDirection * _walkSpeed;
+                velocity.y = _rb.velocity.y;
             }
-        }
-        else
-        {
-            velocity = _moveDirection * _walkSpeed;
-            velocity.y = _rb.velocity.y;
+
+            _rb.velocity = velocity;
         }
 
-        _rb.velocity = velocity;
         SpeedControl();
     }
 
     private bool OnSlope()
     {
-        if (_isGrounded)
+        if (IsGrounded)
         {
             float angle = GetSlopeAngle();
             return angle != 0f && angle <= _maxSlopeAngle;
@@ -106,27 +182,15 @@ public class PlayerController : CreatureController
     private void SpeedControl()
     {
         Vector3 limitedVel = _rb.velocity;
-        if (_isGrounded)
+        if (limitedVel.magnitude > _walkSpeed)
         {
-            if (limitedVel.magnitude > _walkSpeed)
-            {
-                limitedVel = limitedVel.normalized * _walkSpeed;
+            limitedVel = limitedVel.normalized * _walkSpeed;
 
-                if (!OnSlope())
-                    limitedVel.y = _rb.velocity.y;
-            }
+            if (!OnSlope())
+                limitedVel.y = _rb.velocity.y;
         }
 
         _rb.velocity = limitedVel;
-    }
-
-    private void GroundCheckUpdate()
-    {
-        float groundCheckRadius = _collider.radius / 1.5f;
-        float groundCheckDistance = groundCheckRadius + _groundCheckOffset;
-        Vector3 castPos = (_groundCheckOffset + groundCheckRadius) * Vector3.up + transform.position;
-        castPos += _moveDirection * (groundCheckRadius / 2f);
-        _isGrounded = Physics.SphereCast(castPos, groundCheckRadius, Vector3.down, out _groundHit, groundCheckDistance, _groundLayer);
     }
 
     private void SetCameraAngle()
@@ -136,6 +200,8 @@ public class PlayerController : CreatureController
 
     private void LookFixedUpdate()
     {
+        if (DisabledLookInput) return;
+
         Quaternion rotation;
         Vector3 lookVelocity;
 

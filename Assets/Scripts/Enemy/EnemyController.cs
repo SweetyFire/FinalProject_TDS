@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -80,6 +79,29 @@ public class EnemyController : CreatureController
         if (!other.TryGetComponent(out CreatureHealth creature)) return;
         if (!_creatureInSight.Contains(creature)) return;
         _creatureInSight.Remove(creature);
+    }
+
+    public override void Push(Vector3 velocity) => Move(velocity);
+
+    public override void Move(Vector3 velocity)
+    {
+        _agent.Move(velocity);
+    }
+
+    public override void MoveToMovementDirection(float speed)
+    {
+        _agent.Move(_agent.velocity.normalized * speed);
+    }
+
+    public override void MoveToLookDirection(float speed)
+    {
+        _agent.Move(transform.forward * speed);
+    }
+
+    public override void Move(float xVelocity, float zVelocity)
+    {
+        Vector3 moveVel = new(xVelocity, _agent.velocity.y, zVelocity);
+        _agent.Move(moveVel);
     }
 
     protected override void InitComponents()
@@ -213,6 +235,7 @@ public class EnemyController : CreatureController
     {
         if (!CanTakeAction()) return;
         ChangeSpeed();
+        GroundCheckUpdate(Vector3.zero);
 
         if (_currentTarget == null)
         {

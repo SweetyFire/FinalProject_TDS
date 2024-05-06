@@ -518,6 +518,54 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: b12fe8b0-aa03-4621-9461-88452df6f318
     m_ActionName: Player/MousePosition[/Mouse/position]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7227366348326573795}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnFirstAbility
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 0f438ffb-a6e7-46d7-8552-76b287fb0208
+    m_ActionName: Player/FirstAbility[/Keyboard/e]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7227366348326573795}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnSecondAbility
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: eeee9cad-cd87-45c4-af2b-a815c7903513
+    m_ActionName: Player/SecondAbility[/Keyboard/r]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7227366348326573795}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnUltimateAbility
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 86b9cf23-90fb-4530-878f-d1fc60ddda4f
+    m_ActionName: Player/UltimateAbility[/Keyboard/space]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard
   m_DefaultActionMap: Player
@@ -535,6 +583,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c644d3d97ea6b6a4ea7d15a27a2a2c52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &6945671160717710757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1197498562548772395}
+  m_Layer: 6
+  m_Name: Abilities
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1197498562548772395
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6945671160717710757}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8854683181721030217}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7577505590303337957
 GameObject:
   m_ObjectHideFlags: 0
@@ -580,6 +659,7 @@ GameObject:
   - component: {fileID: 7227366348326573795}
   - component: {fileID: 7673594962571509628}
   - component: {fileID: 7537160715043592004}
+  - component: {fileID: 8105921786013280402}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -604,6 +684,7 @@ Transform:
   - {fileID: 816413169913986368}
   - {fileID: 5540067560170977710}
   - {fileID: 8924522046239744860}
+  - {fileID: 1197498562548772395}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &3139811243103279546
@@ -706,3 +787,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxValue: 100
   _team: 0
+--- !u!114 &8105921786013280402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8666453712753558413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ca3198f0bef52844a3aec096a6d3848, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _abilitiesParent: {fileID: 1197498562548772395}
+  _abilitiyPrefabs:
+  - {fileID: 1017434742946333319, guid: 9ffd0d02f44bd4544b8bf5b24ce5ea30, type: 3}
+  - {fileID: 8987026892125094565, guid: adf8b82b695b5b34a80fb3c66f032dbe, type: 3}

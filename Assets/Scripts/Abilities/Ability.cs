@@ -1,18 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public abstract class Ability : MonoBehaviour
 {
+    [Header("Ability")]
     [SerializeField] protected float _cooldown;
+    [SerializeField] protected bool _enableMoveInput;
+    [SerializeField] protected bool _enableLookInput;
 
     public float Cooldown => _cooldown;
     public float RemainingCooldownTime => _cooldownTime;
+    public bool EnableMoveInput => _enableMoveInput;
+    public bool EnableLookInput => _enableLookInput;
+
+    public event Action<Ability> OnStarted;
+    public abstract event Action<Ability> OnCompleted;
 
     protected AbilityCaster _owner;
     private float _cooldownTime;
 
-    private void Update()
+    protected virtual void Update()
     {
         CooldownUpdate();
     }
@@ -27,6 +34,7 @@ public abstract class Ability : MonoBehaviour
         if (_cooldownTime > 0f) return;
 
         _cooldownTime = _cooldown;
+        OnStarted?.Invoke(this);
         ActivateAbility();
     }
 
