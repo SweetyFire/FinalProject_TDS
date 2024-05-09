@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public abstract class CreatureController : MonoBehaviour
@@ -7,15 +6,21 @@ public abstract class CreatureController : MonoBehaviour
     [SerializeField] protected LayerMask _groundLayer;
 
     public float Height => _collider.height;
+    public Vector3 Center => transform.position + Vector3.up;
+
     public bool IsGrounded => _isGrounded;
     public bool DisabledMoveInput => _disabledMoveInput;
     public bool DisabledLookInput => _disabledLookInput;
+    public int Team => _health.Team;
+    public CreatureHealth Health => _health;
+    public bool IsStunned => _isStunned;
 
     protected float HalfColliderRadius => _collider.radius / 1.5f;
     protected float GroundCheckDistance => HalfColliderRadius + _groundCheckOffset;
 
     protected Rigidbody _rb;
     protected CapsuleCollider _collider;
+    protected CreatureHealth _health;
 
     protected RaycastHit _groundHit;
     protected float _groundCheckOffset = 0.1f;
@@ -24,10 +29,21 @@ public abstract class CreatureController : MonoBehaviour
     private bool _disabledMoveInput;
     private bool _disabledLookInput;
 
+    private Vector3 _pushVelocity;
+    private float _pushTimer;
+    private bool _isStunned;
+
     protected virtual void InitComponents()
     {
         _rb = GetComponent<Rigidbody>();
         _collider = GetComponent<CapsuleCollider>();
+        _health = GetComponent<CreatureHealth>();
+    }
+
+    public void Move(Vector3 velocity, float time)
+    {
+        _pushVelocity = velocity;
+        _pushTimer = time;
     }
 
     public abstract void Push(Vector3 velocity);
@@ -35,6 +51,21 @@ public abstract class CreatureController : MonoBehaviour
     public abstract void Move(float xVelocity, float zVelocity);
     public abstract void MoveToMovementDirection(float speed);
     public abstract void MoveToLookDirection(float speed);
+
+    protected void MoveTimeUpdate(float deltaTime)
+    {
+        if (_pushTimer <= -1f) return;
+        if (_pushTimer > 0f)
+        {
+            DisableMove();
+            _pushTimer -= deltaTime;
+            Move(_pushVelocity);
+            return;
+        }
+
+        _pushTimer = -1f;
+        EnableMove();
+    }
 
     protected void GroundCheckUpdate(Vector3 moveDirection)
     {
@@ -45,6 +76,7 @@ public abstract class CreatureController : MonoBehaviour
 
     protected void EnableMove()
     {
+        if (_isStunned) return;
         _disabledMoveInput = false;
     }
 
@@ -55,6 +87,7 @@ public abstract class CreatureController : MonoBehaviour
 
     protected void EnableLook()
     {
+        if (_isStunned) return;
         _disabledLookInput = false;
     }
 

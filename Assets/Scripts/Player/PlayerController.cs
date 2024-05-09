@@ -33,6 +33,7 @@ public class PlayerController : CreatureController
     {
         MoveFixedUpdate();
         LookFixedUpdate();
+        MoveTimeUpdate(Time.fixedDeltaTime);
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
@@ -88,7 +89,14 @@ public class PlayerController : CreatureController
 
     public override void MoveToMovementDirection(float speed)
     {
-        _rb.velocity = _moveDirection * speed;
+        if (_moveDirection != Vector3.zero)
+        {
+            _rb.velocity = _moveDirection * speed;
+        }
+        else
+        {
+            MoveToLookDirection(speed);
+        }
     }
 
     public override void MoveToLookDirection(float speed)
@@ -109,8 +117,8 @@ public class PlayerController : CreatureController
 
         foreach (Ability ability in _abilityCaster.Abilities)
         {
-            ability.OnStarted += OnAbilityStarted;
-            ability.OnCompleted += OnAbilityCompleted;
+            ability.OnStarted.AddListener(OnAbilityStarted);
+            ability.OnCompleted.AddListener(OnAbilityCompleted);
         }
     }
 

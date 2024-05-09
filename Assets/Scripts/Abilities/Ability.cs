@@ -1,10 +1,10 @@
-using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 public abstract class Ability : MonoBehaviour
 {
     [Header("Ability")]
-    [SerializeField] protected float _cooldown;
+    [SerializeField] protected float _cooldown = 1f;
     [SerializeField] protected bool _enableMoveInput;
     [SerializeField] protected bool _enableLookInput;
 
@@ -13,8 +13,8 @@ public abstract class Ability : MonoBehaviour
     public bool EnableMoveInput => _enableMoveInput;
     public bool EnableLookInput => _enableLookInput;
 
-    public event Action<Ability> OnStarted;
-    public abstract event Action<Ability> OnCompleted;
+    public UnityEvent<Ability> OnStarted;
+    public UnityEvent<Ability> OnCompleted;
 
     protected AbilityCaster _owner;
     private float _cooldownTime;

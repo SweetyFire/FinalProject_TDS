@@ -5,6 +5,7 @@ using Random = UnityEngine.Random;
 
 public class EnemyController : CreatureController
 {
+    [Header("Enemy")]
     [SerializeField] private float _viewingAngle = 90f;
     [SerializeField] private LayerMask _obstaclesMask;
     [Header("Speed")]
@@ -56,6 +57,7 @@ public class EnemyController : CreatureController
         LookUpdate();
         FlexUpdate();
         ActionTimerUpdate();
+        MoveTimeUpdate(Time.deltaTime);
     }
 
     public void OnCreatureEnterTrigger(Collider other)

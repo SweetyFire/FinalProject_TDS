@@ -20,7 +20,10 @@ public class AbilityCaster : MonoBehaviour
         {
             Ability abil = Instantiate(ability, _abilitiesParent);
             _abilities.Add(abil);
-            abil.Init(this);
+            foreach (Ability comp in abil.GetComponents<Ability>())
+            {
+                comp.Init(this);
+            }
         }
     }
 

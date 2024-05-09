@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class AbilityDash : Ability
@@ -10,8 +9,6 @@ public class AbilityDash : Ability
 
     protected float _currentDistance;
     protected bool _activated;
-
-    public override event Action<Ability> OnCompleted;
 
     protected override void ActivateAbility()
     {
@@ -70,6 +67,7 @@ public class AbilityDash : Ability
 
     protected void Disable()
     {
+        if (!_activated) return;
         _activated = false;
         OnCompleted?.Invoke(this);
     }

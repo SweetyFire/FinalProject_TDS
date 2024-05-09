@@ -15,4 +15,9 @@ public static class TransformExtensions
             _ => Vector3.zero,
         };
     }
+
+    public static void ClearParent(this Transform transform)
+    {
+        transform.SetParent(null);
+    }
 }
