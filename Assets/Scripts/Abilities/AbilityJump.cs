@@ -8,19 +8,18 @@ public class AbilityJump : AbilityDash
     private float _groundCheckTimer;
     private bool _upMovement;
 
-    protected override void ActivateAbility()
+    private void Update()
+    {
+        DisableWhenGroundedUpdate();
+    }
+
+    public override void Activate()
     {
         if (_activated) return;
 
         _groundCheckTimer = 0.5f;
         _upMovement = true;
-        base.ActivateAbility();
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-        DisableWhenGroundedUpdate();
+        base.Activate();
     }
 
     protected override void MoveOwnerFixedUpdate()
@@ -29,7 +28,7 @@ public class AbilityJump : AbilityDash
         {
             Vector3 velocity = Vector3.up * _jumpStrength;
             velocity += GetDirection() * _speed;
-            _owner.Controller.Move(velocity);
+            _owner.Caster.Controller.Move(velocity);
         }
         else
         {
@@ -58,7 +57,7 @@ public class AbilityJump : AbilityDash
             return;
         }
 
-        if (_owner.Controller.IsGrounded)
+        if (_owner.Caster.Controller.IsGrounded)
         {
             Disable();
         }

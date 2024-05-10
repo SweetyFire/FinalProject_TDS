@@ -30,7 +30,7 @@ public abstract class CreatureController : MonoBehaviour
     private bool _disabledLookInput;
 
     private Vector3 _pushVelocity;
-    private float _pushTimer;
+    private float _pushTimer = -1f;
     private bool _isStunned;
 
     protected virtual void InitComponents()

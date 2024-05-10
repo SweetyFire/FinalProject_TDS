@@ -8,19 +8,18 @@ public class AbilityAreaDamage : AbilityArea
 
     private float _changeParentTimer;
 
-    protected override void Update()
+    private void Update()
     {
-        base.Update();
         ParticleChangeParentUpdate();
     }
 
-    protected override void ActivateAbility()
+    public override void Activate()
     {
         _particleSystem.transform.ClearParent();
         _particleSystem.Play();
         _changeParentTimer = _particleSystem.main.duration;
         MakeActionWithOverlapCreatures(DealDamage);
-        OnCompleted?.Invoke(this);
+        OnCompleted?.Invoke();
     }
 
     private void DealDamage(CreatureController controller)

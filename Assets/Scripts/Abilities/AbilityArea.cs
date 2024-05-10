@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public abstract class AbilityArea : Ability
+public abstract class AbilityArea : AbilityBase
 {
     [Header("Area")]
     [SerializeField] protected float _radius;
@@ -24,20 +24,18 @@ public abstract class AbilityArea : Ability
     protected void MakeActionWithOverlapCreatures(Action<CreatureController> action, bool noNeedToSee = false)
     {
         if (action == null) return;
+        if (Physics.OverlapSphereNonAlloc(transform.position, _radius, _overlapCreatures, _creatureMask) <= 0) return;
 
-        if (Physics.OverlapSphereNonAlloc(transform.position, _radius, _overlapCreatures, _creatureMask) > 0)
+        for (int i = _overlapCreatures.Length - 1; i >= 0; i--)
         {
-            for (int i = _overlapCreatures.Length - 1; i >= 0; i--)
-            {
-                if (_overlapCreatures[i] == null) continue;
-                if (!_overlapCreatures[i].TryGetComponent(out CreatureController controller)) continue;
-                if (controller.Team == _owner.Controller.Team) continue;
+            if (_overlapCreatures[i] == null) continue;
+            if (!_overlapCreatures[i].TryGetComponent(out CreatureController controller)) continue;
+            if (controller.Team == _owner.Caster.Controller.Team) continue;
 
-                if (!noNeedToSee)
-                    if (Physics.Linecast(_owner.Controller.Center, controller.Center, _groundMask)) continue;
+            if (!noNeedToSee)
+                if (Physics.Linecast(_owner.Caster.Controller.Center, controller.Center, _groundMask)) continue;
 
-                action.Invoke(controller);
-            }
+            action.Invoke(controller);
         }
     }
 

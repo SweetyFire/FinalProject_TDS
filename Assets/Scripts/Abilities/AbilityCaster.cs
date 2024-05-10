@@ -4,31 +4,32 @@ using UnityEngine;
 public class AbilityCaster : MonoBehaviour
 {
     [SerializeField] private Transform _abilitiesParent;
-    [SerializeField] private List<Ability> _abilitiyPrefabs;
+    [SerializeField] private List<AbilityCooldown> _abilitiyPrefabs;
     
     public CreatureController Controller => _controller;
-    public IReadOnlyList<Ability> Abilities => _abilities;
+    public IReadOnlyList<AbilityCooldown> Abilities => _abilities;
 
-    private List<Ability> _abilities = new();
+    private List<AbilityCooldown> _abilities = new();
     private CreatureController _controller;
 
     public void Init(CreatureController controller)
     {
         _controller = controller;
-
-        foreach (Ability ability in _abilitiyPrefabs)
-        {
-            Ability abil = Instantiate(ability, _abilitiesParent);
-            _abilities.Add(abil);
-            foreach (Ability comp in abil.GetComponents<Ability>())
-            {
-                comp.Init(this);
-            }
-        }
+        InitAbilities();
     }
 
     public void ActivateAbility(int index)
     {
         _abilities[index].Activate();
+    }
+
+    private void InitAbilities()
+    {
+        foreach (AbilityCooldown ability in _abilitiyPrefabs)
+        {
+            AbilityCooldown abil = Instantiate(ability, _abilitiesParent);
+            _abilities.Add(abil);
+            abil.Init(this);
+        }
     }
 }

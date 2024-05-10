@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AbilityDash : Ability
+public class AbilityDash : AbilityBase
 {
     [Header("Dash")]
     [SerializeField] protected VectorDirection _direction;
@@ -9,14 +9,6 @@ public class AbilityDash : Ability
 
     protected float _currentDistance;
     protected bool _activated;
-
-    protected override void ActivateAbility()
-    {
-        if (_activated) return;
-
-        _currentDistance = 0f;
-        Enable();
-    }
 
     private void FixedUpdate()
     {
@@ -27,20 +19,28 @@ public class AbilityDash : Ability
         DisableOnMaxDistance();
     }
 
+    public override void Activate()
+    {
+        if (_activated) return;
+
+        _currentDistance = 0f;
+        Enable();
+    }
+
     protected virtual void MoveOwnerFixedUpdate()
     {
         if (_direction == VectorDirection.Movement)
         {
-            _owner.Controller.MoveToMovementDirection(_speed);
+            _owner.Caster.Controller.MoveToMovementDirection(_speed);
         }
         else if (_direction == VectorDirection.Look)
         {
-            _owner.Controller.MoveToLookDirection(_speed);
+            _owner.Caster.Controller.MoveToLookDirection(_speed);
         }
         else
         {
             Vector3 velocity = GetDirection() * _speed;
-            _owner.Controller.Move(velocity.x, velocity.z);
+            _owner.Caster.Controller.Move(velocity.x, velocity.z);
         }
     }
 
@@ -69,6 +69,6 @@ public class AbilityDash : Ability
     {
         if (!_activated) return;
         _activated = false;
-        OnCompleted?.Invoke(this);
+        OnCompleted?.Invoke();
     }
 }

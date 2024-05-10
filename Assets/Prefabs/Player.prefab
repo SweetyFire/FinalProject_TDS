@@ -833,5 +833,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilitiesParent: {fileID: 1197498562548772395}
   _abilitiyPrefabs:
-  - {fileID: 1017434742946333319, guid: 9ffd0d02f44bd4544b8bf5b24ce5ea30, type: 3}
-  - {fileID: 8987026892125094565, guid: aa03098ff9d76574ebc1d67cdf15cd32, type: 3}
+  - {fileID: 4271966784305242728, guid: 9ffd0d02f44bd4544b8bf5b24ce5ea30, type: 3}
+  - {fileID: 7397758970704101933, guid: aa03098ff9d76574ebc1d67cdf15cd32, type: 3}

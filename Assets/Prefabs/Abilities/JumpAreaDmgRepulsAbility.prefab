@@ -40,11 +40,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5437734749426901696}
+  - component: {fileID: 7397758970704101933}
   - component: {fileID: 8987026892125094565}
   - component: {fileID: -6617224726570277302}
   - component: {fileID: 675715833668191177}
   m_Layer: 0
-  m_Name: JumpAreaDamageAbility
+  m_Name: JumpAreaDmgRepulsAbility
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -66,6 +67,42 @@ Transform:
   - {fileID: 8273641085944575330}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7397758970704101933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8283964035048458373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23b83b03ad134274b8507b27feb1b59a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cooldown: 5
+  _enableMoveInput: 0
+  _enableLookInput: 0
+  OnActivate:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 8987026892125094565}
+        m_TargetAssemblyTypeName: AbilityJump, Assembly-CSharp
+        m_MethodName: Activate
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnCooldown:
+    m_PersistentCalls:
+      m_Calls: []
+  OnAllCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &8987026892125094565
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,17 +115,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5a4b0bef525dae44a10a5ff66daf694, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cooldown: 5
-  _enableMoveInput: 0
-  _enableLookInput: 0
-  OnStarted:
-    m_PersistentCalls:
-      m_Calls: []
   OnCompleted:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: -6617224726570277302}
-        m_TargetAssemblyTypeName: Ability, Assembly-CSharp
+        m_TargetAssemblyTypeName: AbilityAreaDamage, Assembly-CSharp
         m_MethodName: Activate
         m_Mode: 1
         m_Arguments:
@@ -100,7 +131,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 675715833668191177}
-        m_TargetAssemblyTypeName: Ability, Assembly-CSharp
+        m_TargetAssemblyTypeName: AbilityRepulsion, Assembly-CSharp
         m_MethodName: Activate
         m_Mode: 1
         m_Arguments:
@@ -127,12 +158,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6754de79a72066b45b33a088d958859c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cooldown: 1
-  _enableMoveInput: 0
-  _enableLookInput: 0
-  OnStarted:
-    m_PersistentCalls:
-      m_Calls: []
   OnCompleted:
     m_PersistentCalls:
       m_Calls: []
@@ -158,16 +183,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cffab8b6ab794d41a5cc6b91083ad89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cooldown: 1
-  _enableMoveInput: 0
-  _enableLookInput: 0
-  OnStarted:
-    m_PersistentCalls:
-      m_Calls: []
   OnCompleted:
     m_PersistentCalls:
       m_Calls: []
-  _radius: 6
+  _radius: 9
   _maxTargets: 10
   _creatureMask:
     serializedVersion: 2
@@ -175,7 +194,8 @@ MonoBehaviour:
   _groundMask:
     serializedVersion: 2
     m_Bits: 1
-  _force: 7
+  _force: 5
+  _repulsionTime: 0.7
 --- !u!1 &9146453910145288377
 GameObject:
   m_ObjectHideFlags: 0

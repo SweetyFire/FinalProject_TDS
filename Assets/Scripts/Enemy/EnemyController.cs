@@ -87,23 +87,23 @@ public class EnemyController : CreatureController
 
     public override void Move(Vector3 velocity)
     {
-        _agent.Move(velocity);
+        _agent.Move(velocity * Time.deltaTime);
     }
 
     public override void MoveToMovementDirection(float speed)
     {
-        _agent.Move(_agent.velocity.normalized * speed);
+        _agent.Move(speed * Time.deltaTime * _agent.velocity.normalized);
     }
 
     public override void MoveToLookDirection(float speed)
     {
-        _agent.Move(transform.forward * speed);
+        _agent.Move(speed * Time.deltaTime * transform.forward);
     }
 
     public override void Move(float xVelocity, float zVelocity)
     {
         Vector3 moveVel = new(xVelocity, _agent.velocity.y, zVelocity);
-        _agent.Move(moveVel);
+        _agent.Move(moveVel * Time.deltaTime);
     }
 
     protected override void InitComponents()
@@ -235,7 +235,14 @@ public class EnemyController : CreatureController
 
     private void WalkUpdate()
     {
+        if (DisabledMoveInput)
+        {
+            _agent.isStopped = true;
+            return;
+        }
+
         if (!CanTakeAction()) return;
+        _agent.isStopped = false;
         ChangeSpeed();
         GroundCheckUpdate(Vector3.zero);
 
@@ -326,6 +333,7 @@ public class EnemyController : CreatureController
 
     private void FlexUpdate()
     {
+        if (DisabledMoveInput) return;
         if (!_seeCurrentTarget) return;
         if (_flexTime <= 0f) return;
 
@@ -353,6 +361,7 @@ public class EnemyController : CreatureController
 
     private void LookUpdate()
     {
+        if (DisabledLookInput) return;
         Vector3 direction = GetLookDirection();
         float rotationSpeed;
         if (!IsStopped())

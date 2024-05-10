@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : CreatureController
 {
+    [Header("Player")]
     [SerializeField] private float _walkSpeed = 5f;
     [SerializeField] private float _rotationSpeed = 500f;
     [SerializeField] private float _maxSlopeAngle = 45f;
@@ -115,14 +116,14 @@ public class PlayerController : CreatureController
     {
         _abilityCaster.Init(this);
 
-        foreach (Ability ability in _abilityCaster.Abilities)
+        foreach (AbilityCooldown ability in _abilityCaster.Abilities)
         {
-            ability.OnStarted.AddListener(OnAbilityStarted);
-            ability.OnCompleted.AddListener(OnAbilityCompleted);
+            ability.OnActivate.AddListener(OnAbilityStarted);
+            ability.OnAllCompleted.AddListener(OnAbilityCompleted);
         }
     }
 
-    private void OnAbilityStarted(Ability ability)
+    private void OnAbilityStarted(AbilityCooldown ability)
     {
         if (!ability.EnableMoveInput)
         {
@@ -135,7 +136,7 @@ public class PlayerController : CreatureController
         }
     }
 
-    private void OnAbilityCompleted(Ability ability)
+    private void OnAbilityCompleted(AbilityCooldown ability)
     {
         EnableMove();
         EnableLook();
