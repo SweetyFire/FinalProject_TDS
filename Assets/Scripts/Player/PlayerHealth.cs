@@ -1,25 +1,29 @@
-using System;
+using UnityEngine;
 
 public class PlayerHealth : CreatureHealth
 {
-    public event Action<PlayerHealth> OnHealthUpdated;
-    public event Action<PlayerHealth> OnMaxHealthUpdated;
+    [Header("UI")]
+    [SerializeField] private BarUI _healthbar;
 
     public override void TakeDamage(float damage)
     {
         base.TakeDamage(damage);
-        OnHealthUpdated?.Invoke(this);
+        UpdateBar();
     }
 
     protected override void InitValues()
     {
         base.InitValues();
-        OnMaxHealthUpdated?.Invoke(this);
-        OnHealthUpdated?.Invoke(this);
+        UpdateBar();
     }
 
     protected override void DestroyMe()
     {
 
+    }
+
+    private void UpdateBar()
+    {
+        _healthbar.UpdateValue(Value, MaxValue);
     }
 }

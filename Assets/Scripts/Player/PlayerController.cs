@@ -37,11 +37,15 @@ public class PlayerController : CreatureController
         MoveTimeUpdate(Time.fixedDeltaTime);
     }
 
+    #region Input
     public void OnMove(InputAction.CallbackContext ctx)
     {
         Vector2 input = ctx.ReadValue<Vector2>();
         _moveDirection = new(input.x, 0f, input.y);
         _moveDirection = _moveDirection.RotateTo(0f, _cameraAngle, 0f);
+
+        if (ctx.canceled) return;
+        _abilityCaster.InterruptAbilityCasting();
     }
 
     public void OnLook(InputAction.CallbackContext ctx)
@@ -57,21 +61,23 @@ public class PlayerController : CreatureController
     public void OnFirstAbility(InputAction.CallbackContext ctx)
     {
         if (!ctx.started) return;
-        _abilityCaster.ActivateAbility(0);
+        ActivateAbility(0);
     }
 
     public void OnSecondAbility(InputAction.CallbackContext ctx)
     {
         if (!ctx.started) return;
-        _abilityCaster.ActivateAbility(1);
+        ActivateAbility(1);
     }
 
     public void OnUltimateAbility(InputAction.CallbackContext ctx)
     {
         if (!ctx.started) return;
-        _abilityCaster.ActivateAbility(2);
+        ActivateAbility(2);
     }
+    #endregion /Input
 
+    #region Overrides
     public override void Push(Vector3 velocity)
     {
         _rb.AddForce(velocity, ForceMode.Impulse);
@@ -92,7 +98,9 @@ public class PlayerController : CreatureController
     {
         if (_moveDirection != Vector3.zero)
         {
-            _rb.velocity = _moveDirection * speed;
+            Vector3 velocity = _moveDirection * speed;
+            velocity.y = _rb.velocity.y;
+            _rb.velocity = velocity;
         }
         else
         {
@@ -102,7 +110,9 @@ public class PlayerController : CreatureController
 
     public override void MoveToLookDirection(float speed)
     {
-        _rb.velocity = transform.forward * speed;
+        Vector3 velocity = transform.forward * speed;
+        velocity.y = _rb.velocity.y;
+        _rb.velocity = velocity;
     }
 
     protected override void InitComponents()
@@ -112,34 +122,11 @@ public class PlayerController : CreatureController
         _abilityCaster = GetComponent<AbilityCaster>();
     }
 
+    #endregion /Overrides
+
     private void InitAbilities()
     {
-        _abilityCaster.Init(this);
-
-        foreach (AbilityCooldown ability in _abilityCaster.Abilities)
-        {
-            ability.OnActivate.AddListener(OnAbilityStarted);
-            ability.OnAllCompleted.AddListener(OnAbilityCompleted);
-        }
-    }
-
-    private void OnAbilityStarted(AbilityCooldown ability)
-    {
-        if (!ability.EnableMoveInput)
-        {
-            DisableMove();
-        }
-
-        if (!ability.EnableLookInput)
-        {
-            DisableLook();
-        }
-    }
-
-    private void OnAbilityCompleted(AbilityCooldown ability)
-    {
-        EnableMove();
-        EnableLook();
+        _abilityCaster.Init(this, _weapon);
     }
 
     private void MoveFixedUpdate()
@@ -177,6 +164,63 @@ public class PlayerController : CreatureController
         SpeedControl();
     }
 
+    private void LookFixedUpdate()
+    {
+        if (DisabledLookInput) return;
+
+        Quaternion rotation;
+        Vector3 lookVelocity;
+
+        // Rotate To Cursor or Stick Direction
+        if (_weapon.IsAttacking || (_abilityCaster.IsCasting && !_abilityCaster.NotLookTargetWhileCast))
+        {
+            if (_playerInput.currentControlScheme == "Keyboard")
+            {
+                Ray mouseRay = _camera.ScreenPointToRay(_mousePosition);
+                if (Physics.SphereCast(mouseRay, 0.1f, out RaycastHit hit, _camera.farClipPlane, _lookMask))
+                {
+                    Vector3 mouseInWorld = hit.point;
+                    lookVelocity = (mouseInWorld - _rb.position).normalized;
+                    lookVelocity = new(lookVelocity.x, 0f, lookVelocity.z);
+                }
+                else
+                {
+                    Vector2 onScreenPos = _camera.WorldToScreenPoint(_rb.position);
+                    lookVelocity = (_mousePosition - onScreenPos).normalized;
+                    lookVelocity = new(lookVelocity.x, 0f, lookVelocity.y);
+                    lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
+                }
+
+            }
+            else
+            {
+                if (_lookDirection == Vector2.zero) return;
+                lookVelocity = new(_lookDirection.x, 0f, _lookDirection.y);
+                lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
+            }
+        }
+
+        // Rotate To Move Direction
+        else
+        {
+            if (_moveDirection == Vector3.zero) return;
+            lookVelocity = _moveDirection;
+        }
+
+        rotation = Quaternion.LookRotation(lookVelocity, Vector3.up);
+        _rb.rotation = Quaternion.RotateTowards(_rb.rotation, rotation, _rotationSpeed);
+    }
+
+    private void ActivateAbility(int index)
+    {
+        if (_abilityCaster.CanCasting(index))
+        {
+            if (_moveDirection != Vector3.zero) return;
+        }
+
+        _abilityCaster.ActivateAbility(index);
+    }
+
     private bool OnSlope()
     {
         if (IsGrounded)
@@ -205,50 +249,6 @@ public class PlayerController : CreatureController
     private void SetCameraAngle()
     {
         _cameraAngle = _camera.transform.localRotation.eulerAngles.y;
-    }
-
-    private void LookFixedUpdate()
-    {
-        if (DisabledLookInput) return;
-
-        Quaternion rotation;
-        Vector3 lookVelocity;
-
-        if (_weapon.IsAttacking)
-        {
-            if (_playerInput.currentControlScheme == "Keyboard")
-            {
-                Ray mouseRay = _camera.ScreenPointToRay(_mousePosition);
-                if (Physics.SphereCast(mouseRay, 0.1f, out RaycastHit hit, _camera.farClipPlane, _lookMask))
-                {
-                    Vector3 mouseInWorld = hit.point;
-                    lookVelocity = (mouseInWorld - _rb.position).normalized;
-                    lookVelocity = new(lookVelocity.x, 0f, lookVelocity.z);
-                }
-                else
-                {
-                    Vector2 onScreenPos = _camera.WorldToScreenPoint(_rb.position);
-                    lookVelocity = (_mousePosition - onScreenPos).normalized;
-                    lookVelocity = new(lookVelocity.x, 0f, lookVelocity.y);
-                    lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
-                }
-
-            }
-            else
-            {
-                if (_lookDirection == Vector2.zero) return;
-                lookVelocity = new(_lookDirection.x, 0f, _lookDirection.y);
-                lookVelocity = lookVelocity.RotateTo(0f, _cameraAngle, 0f);
-            }
-        }
-        else
-        {
-            if (_moveDirection == Vector3.zero) return;
-            lookVelocity = _moveDirection;
-        }
-        
-        rotation = Quaternion.LookRotation(lookVelocity, Vector3.up);
-        _rb.rotation = Quaternion.RotateTowards(_rb.rotation, rotation, _rotationSpeed);
     }
 
     private float GetSlopeAngle()

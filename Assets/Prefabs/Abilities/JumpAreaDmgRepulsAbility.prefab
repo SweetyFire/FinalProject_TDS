@@ -81,8 +81,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cooldown: 5
   _enableMoveInput: 0
-  _enableLookInput: 0
+  _enableLookInput: 1
+  _enableAttackInput: 0
+  _castTime: 0
+  _notLookTargetWhileCast: 0
+  _notInterruptible: 0
   OnActivate:
+    m_PersistentCalls:
+      m_Calls: []
+  OnCasted:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 8987026892125094565}
@@ -97,10 +104,13 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  OnCooldown:
+  OnAllCompleted:
     m_PersistentCalls:
       m_Calls: []
-  OnAllCompleted:
+  OnCastInterrupted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnCooldown:
     m_PersistentCalls:
       m_Calls: []
 --- !u!114 &8987026892125094565
@@ -196,6 +206,7 @@ MonoBehaviour:
     m_Bits: 1
   _force: 5
   _repulsionTime: 0.7
+  _maxRepulsionRigidbodies: 50
 --- !u!1 &9146453910145288377
 GameObject:
   m_ObjectHideFlags: 0

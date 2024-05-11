@@ -9,8 +9,8 @@ public abstract class CreatureController : MonoBehaviour
     public Vector3 Center => transform.position + Vector3.up;
 
     public bool IsGrounded => _isGrounded;
-    public bool DisabledMoveInput => _disabledMoveInput;
-    public bool DisabledLookInput => _disabledLookInput;
+    public bool DisabledMoveInput => _disabledMoveInput || _isStunned;
+    public bool DisabledLookInput => _disabledLookInput || _isStunned;
     public int Team => _health.Team;
     public CreatureHealth Health => _health;
     public bool IsStunned => _isStunned;
@@ -74,24 +74,24 @@ public abstract class CreatureController : MonoBehaviour
         _isGrounded = Physics.SphereCast(castPos, HalfColliderRadius, Vector3.down, out _groundHit, GroundCheckDistance, _groundLayer);
     }
 
-    protected void EnableMove()
+    public void EnableMove()
     {
         if (_isStunned) return;
         _disabledMoveInput = false;
     }
 
-    protected void DisableMove()
+    public void DisableMove()
     {
         _disabledMoveInput = true;
     }
 
-    protected void EnableLook()
+    public void EnableLook()
     {
         if (_isStunned) return;
         _disabledLookInput = false;
     }
 
-    protected void DisableLook()
+    public void DisableLook()
     {
         _disabledLookInput = true;
     }
