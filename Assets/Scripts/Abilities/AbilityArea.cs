@@ -30,10 +30,10 @@ public abstract class AbilityArea : AbilityBase
         {
             if (_overlapCreatures[i] == null) continue;
             if (!_overlapCreatures[i].TryGetComponent(out CreatureController controller)) continue;
-            if (controller.Team == _owner.Caster.Controller.Team) continue;
+            if (controller.Team == _owner.Controller.Team) continue;
 
             if (!noNeedToSee)
-                if (Physics.Linecast(_owner.Caster.Controller.Center, controller.Center, _groundMask)) continue;
+                if (Physics.Linecast(_owner.Controller.Center, controller.Center, _groundMask)) continue;
 
             action.Invoke(controller);
         }

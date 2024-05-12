@@ -28,7 +28,7 @@ public class AbilityJump : AbilityDash
         {
             Vector3 velocity = Vector3.up * _jumpStrength;
             velocity += GetDirection() * _speed;
-            _owner.Caster.Controller.Move(velocity);
+            _owner.Controller.Move(velocity);
         }
         else
         {
@@ -57,7 +57,7 @@ public class AbilityJump : AbilityDash
             return;
         }
 
-        if (_owner.Caster.Controller.IsGrounded)
+        if (_owner.Controller.IsGrounded)
         {
             Disable();
         }

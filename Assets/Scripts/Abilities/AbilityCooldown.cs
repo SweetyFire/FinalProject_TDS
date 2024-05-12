@@ -84,7 +84,7 @@ public sealed class AbilityCooldown : MonoBehaviour
         foreach (AbilityBase ability in GetComponents<AbilityBase>())
         {
             _abilities.Add(ability);
-            ability.Init(this);
+            ability.Init(_caster);
             ability.OnCompleted.AddListener(OnAbilityCompleted);
         }
     }

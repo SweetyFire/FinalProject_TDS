@@ -31,16 +31,16 @@ public class AbilityDash : AbilityBase
     {
         if (_direction == VectorDirection.Movement)
         {
-            _owner.Caster.Controller.MoveToMovementDirection(_speed);
+            _owner.Controller.MoveToMovementDirection(_speed);
         }
         else if (_direction == VectorDirection.Look)
         {
-            _owner.Caster.Controller.MoveToLookDirection(_speed);
+            _owner.Controller.MoveToLookDirection(_speed);
         }
         else
         {
             Vector3 velocity = GetDirection() * _speed;
-            _owner.Caster.Controller.Move(velocity.x, velocity.z);
+            _owner.Controller.Move(velocity.x, velocity.z);
         }
     }
 

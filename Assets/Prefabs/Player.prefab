@@ -837,6 +837,7 @@ MonoBehaviour:
   _abilitiyPrefabs:
   - {fileID: 4271966784305242728, guid: 9ffd0d02f44bd4544b8bf5b24ce5ea30, type: 3}
   - {fileID: 7397758970704101933, guid: aa03098ff9d76574ebc1d67cdf15cd32, type: 3}
+  - {fileID: 3737264123814335725, guid: e3a658b4ba4323e49bc593c47dcfa3a3, type: 3}
   _abilityCastBar: {fileID: 5229806929161840352}
   OnCastStart:
     m_PersistentCalls:
