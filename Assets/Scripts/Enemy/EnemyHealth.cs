@@ -1,17 +1,12 @@
 
 public class EnemyHealth : CreatureHealth
 {
-    public EnemyController Controller => _controller;
-    private EnemyController _controller;
+    public new EnemyController Controller => _enemyController;
+    protected EnemyController _enemyController;
 
-    protected override void Awake()
+    protected override void InitComponents()
     {
-        base.Awake();
-        InitComponents();
-    }
-
-    private void InitComponents()
-    {
-        _controller = GetComponent<EnemyController>();
+        base.InitComponents();
+        _enemyController = GetComponent<EnemyController>();
     }
 }

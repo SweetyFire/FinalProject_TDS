@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -6,6 +5,7 @@ using Random = UnityEngine.Random;
 
 public class EnemyController : CreatureController
 {
+    [Header("Enemy")]
     [SerializeField] private float _viewingAngle = 90f;
     [SerializeField] private LayerMask _obstaclesMask;
     [Header("Speed")]
@@ -57,6 +57,7 @@ public class EnemyController : CreatureController
         LookUpdate();
         FlexUpdate();
         ActionTimerUpdate();
+        MoveTimeUpdate(Time.deltaTime);
     }
 
     public void OnCreatureEnterTrigger(Collider other)
@@ -80,6 +81,29 @@ public class EnemyController : CreatureController
         if (!other.TryGetComponent(out CreatureHealth creature)) return;
         if (!_creatureInSight.Contains(creature)) return;
         _creatureInSight.Remove(creature);
+    }
+
+    public override void Push(Vector3 velocity) => Move(velocity);
+
+    public override void Move(Vector3 velocity)
+    {
+        _agent.Move(velocity * Time.deltaTime);
+    }
+
+    public override void MoveToMovementDirection(float speed)
+    {
+        _agent.Move(speed * Time.deltaTime * _agent.velocity.normalized);
+    }
+
+    public override void MoveToLookDirection(float speed)
+    {
+        _agent.Move(speed * Time.deltaTime * transform.forward);
+    }
+
+    public override void Move(float xVelocity, float zVelocity)
+    {
+        Vector3 moveVel = new(xVelocity, _agent.velocity.y, zVelocity);
+        _agent.Move(moveVel * Time.deltaTime);
     }
 
     protected override void InitComponents()
@@ -211,8 +235,16 @@ public class EnemyController : CreatureController
 
     private void WalkUpdate()
     {
+        if (DisabledMoveInput)
+        {
+            _agent.isStopped = true;
+            return;
+        }
+
         if (!CanTakeAction()) return;
+        _agent.isStopped = false;
         ChangeSpeed();
+        GroundCheckUpdate(Vector3.zero);
 
         if (_currentTarget == null)
         {
@@ -301,6 +333,7 @@ public class EnemyController : CreatureController
 
     private void FlexUpdate()
     {
+        if (DisabledMoveInput) return;
         if (!_seeCurrentTarget) return;
         if (_flexTime <= 0f) return;
 
@@ -328,6 +361,7 @@ public class EnemyController : CreatureController
 
     private void LookUpdate()
     {
+        if (DisabledLookInput) return;
         Vector3 direction = GetLookDirection();
         float rotationSpeed;
         if (!IsStopped())

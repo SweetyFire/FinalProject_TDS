@@ -9,11 +9,13 @@ public abstract class CreatureWeapon : MonoBehaviour
     public bool IsAttacking => _isAttacking;
     public CreatureController Controller => _controller;
     public CreatureHealth Health => _health;
+    public bool DisabledAttack => _disabledAttack || _controller.IsStunned;
 
     public Weapon Weapon => _weapon;
     protected Weapon _weapon;
     protected CreatureHealth _health;
     protected CreatureController _controller;
+    protected bool _disabledAttack;
     private bool _isAttacking;
 
     protected virtual void Awake()
@@ -49,6 +51,16 @@ public abstract class CreatureWeapon : MonoBehaviour
         _isAttacking = false;
     }
 
+    public void EnableAttack()
+    {
+        _disabledAttack = false;
+    }
+
+    public void DisableAttack()
+    {
+        _disabledAttack = true;
+    }
+
     protected virtual void InitComponents()
     {
         _health = GetComponent<CreatureHealth>();
@@ -57,6 +69,8 @@ public abstract class CreatureWeapon : MonoBehaviour
 
     private void AttackUpdate()
     {
+        if (DisabledAttack) return;
+
         if (_isAttacking)
         {
             Attack();

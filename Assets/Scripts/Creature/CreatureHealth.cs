@@ -13,8 +13,12 @@ public abstract class CreatureHealth : MonoBehaviour
     public bool IsAlive => _value > 0;
     public int Team => _team;
 
+    public CreatureController Controller => _controller;
+    protected CreatureController _controller;
+
     protected virtual void Awake()
     {
+        InitComponents();
         InitValues();
     }
 
@@ -35,5 +39,10 @@ public abstract class CreatureHealth : MonoBehaviour
     protected virtual void InitValues()
     {
         _value = _maxValue;
+    }
+
+    protected virtual void InitComponents()
+    {
+        _controller = GetComponent<CreatureController>();
     }
 }

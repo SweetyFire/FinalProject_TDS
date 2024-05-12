@@ -62,6 +62,33 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""FirstAbility"",
+                    ""type"": ""Button"",
+                    ""id"": ""0f438ffb-a6e7-46d7-8552-76b287fb0208"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SecondAbility"",
+                    ""type"": ""Button"",
+                    ""id"": ""eeee9cad-cd87-45c4-af2b-a815c7903513"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""UltimateAbility"",
+                    ""type"": ""Button"",
+                    ""id"": ""86b9cf23-90fb-4530-878f-d1fc60ddda4f"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -174,6 +201,72 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""MousePosition"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""796f4d43-5ff2-4b08-a2e5-842a8a619252"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""FirstAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7f3719d8-d8e5-4462-a0ef-b596cf6d7149"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""FirstAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c6e6078c-4265-4d33-93bc-3a04a2aa72c8"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""SecondAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9bafcb72-1977-40d9-8f70-2ad2279f2884"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""SecondAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a3dc89e5-8fd2-4a3c-b717-76ab1bc2ca4d"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""UltimateAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""946a04a7-4149-476e-8e71-bcf57392d60f"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""UltimateAbility"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -214,6 +307,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Shoot = m_Player.FindAction("Shoot", throwIfNotFound: true);
         m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
         m_Player_MousePosition = m_Player.FindAction("MousePosition", throwIfNotFound: true);
+        m_Player_FirstAbility = m_Player.FindAction("FirstAbility", throwIfNotFound: true);
+        m_Player_SecondAbility = m_Player.FindAction("SecondAbility", throwIfNotFound: true);
+        m_Player_UltimateAbility = m_Player.FindAction("UltimateAbility", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -279,6 +375,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Shoot;
     private readonly InputAction m_Player_Look;
     private readonly InputAction m_Player_MousePosition;
+    private readonly InputAction m_Player_FirstAbility;
+    private readonly InputAction m_Player_SecondAbility;
+    private readonly InputAction m_Player_UltimateAbility;
     public struct PlayerActions
     {
         private @PlayerControls m_Wrapper;
@@ -287,6 +386,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Shoot => m_Wrapper.m_Player_Shoot;
         public InputAction @Look => m_Wrapper.m_Player_Look;
         public InputAction @MousePosition => m_Wrapper.m_Player_MousePosition;
+        public InputAction @FirstAbility => m_Wrapper.m_Player_FirstAbility;
+        public InputAction @SecondAbility => m_Wrapper.m_Player_SecondAbility;
+        public InputAction @UltimateAbility => m_Wrapper.m_Player_UltimateAbility;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -308,6 +410,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @MousePosition.started += instance.OnMousePosition;
             @MousePosition.performed += instance.OnMousePosition;
             @MousePosition.canceled += instance.OnMousePosition;
+            @FirstAbility.started += instance.OnFirstAbility;
+            @FirstAbility.performed += instance.OnFirstAbility;
+            @FirstAbility.canceled += instance.OnFirstAbility;
+            @SecondAbility.started += instance.OnSecondAbility;
+            @SecondAbility.performed += instance.OnSecondAbility;
+            @SecondAbility.canceled += instance.OnSecondAbility;
+            @UltimateAbility.started += instance.OnUltimateAbility;
+            @UltimateAbility.performed += instance.OnUltimateAbility;
+            @UltimateAbility.canceled += instance.OnUltimateAbility;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -324,6 +435,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @MousePosition.started -= instance.OnMousePosition;
             @MousePosition.performed -= instance.OnMousePosition;
             @MousePosition.canceled -= instance.OnMousePosition;
+            @FirstAbility.started -= instance.OnFirstAbility;
+            @FirstAbility.performed -= instance.OnFirstAbility;
+            @FirstAbility.canceled -= instance.OnFirstAbility;
+            @SecondAbility.started -= instance.OnSecondAbility;
+            @SecondAbility.performed -= instance.OnSecondAbility;
+            @SecondAbility.canceled -= instance.OnSecondAbility;
+            @UltimateAbility.started -= instance.OnUltimateAbility;
+            @UltimateAbility.performed -= instance.OnUltimateAbility;
+            @UltimateAbility.canceled -= instance.OnUltimateAbility;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -365,5 +485,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnShoot(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
+        void OnFirstAbility(InputAction.CallbackContext context);
+        void OnSecondAbility(InputAction.CallbackContext context);
+        void OnUltimateAbility(InputAction.CallbackContext context);
     }
 }
