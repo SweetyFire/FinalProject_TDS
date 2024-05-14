@@ -207,10 +207,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f38adfc9a4196684887538c0302fb1e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _viewingAngle: 90
-  _obstaclesMask:
+  _groundLayer:
     serializedVersion: 2
     m_Bits: 1
+  _viewingAngle: 90
   _walkSpeed: 4
   _minStoppingDistance: 3
   _maxStoppingDistance: 10
@@ -312,7 +312,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 51483a13076831847b2eb98a7ca1eb34, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

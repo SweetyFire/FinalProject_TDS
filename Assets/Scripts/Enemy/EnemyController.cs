@@ -7,7 +7,6 @@ public class EnemyController : CreatureController
 {
     [Header("Enemy")]
     [SerializeField] private float _viewingAngle = 90f;
-    [SerializeField] private LayerMask _obstaclesMask;
     [Header("Speed")]
     [SerializeField] private float _walkSpeed = 4f;
     [SerializeField] private float _minStoppingDistance = 3f;
@@ -230,7 +229,7 @@ public class EnemyController : CreatureController
 
     private bool SeeTarget(CreatureHealth enemy)
     {
-        return !Physics.Linecast(transform.position + Vector3.up, enemy.transform.position + Vector3.up, _obstaclesMask);
+        return !Physics.Linecast(transform.position + Vector3.up, enemy.transform.position + Vector3.up, _groundLayer);
     }
 
     private void WalkUpdate()
