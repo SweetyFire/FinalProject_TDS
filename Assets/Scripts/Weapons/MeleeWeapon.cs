@@ -8,14 +8,16 @@ public class MeleeWeapon : Weapon
 
     private List<CreatureHealth> _targets = new();
 
-    protected override void Awake()
-    {
-        base.Awake();
-        _attackCollider.enabled = false;
-    }
-
     protected override void AttackStart()
     {
+        if (_targets.Count > 0)
+        {
+            _audioSource.Stop();
+            _audioSource.clip = _impactSounds.GetRandom();
+            _audioSource.SetRandomPitchAndVolume(0.9f, 1.1f, 0.6f, 0.7f);
+            _audioSource.Play();
+        }
+
         for (int i = _targets.Count - 1; i >= 0; i--)
         {
             if (_targets[i] == null || !_targets[i].IsAlive)
@@ -24,7 +26,7 @@ public class MeleeWeapon : Weapon
                 continue;
             }
 
-            _targets[i].TakeDamage(_damage);
+            _targets[i].TakeDamage(_damage, transform.position);
         }
     }
 

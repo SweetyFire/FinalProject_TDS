@@ -8,12 +8,6 @@ public class EnemyWeapon : CreatureWeapon
     private float _attackTimer;
     private EnemyController _enemyController;
 
-    protected override void Awake()
-    {
-        base.Awake();
-        InitWeapon();
-    }
-
     protected override void Update()
     {
         base.Update();
@@ -29,13 +23,6 @@ public class EnemyWeapon : CreatureWeapon
     {
         base.InitComponents();
         _enemyController = GetComponent<EnemyController>();
-    }
-
-    private void InitWeapon()
-    {
-        if (_attachPoint.childCount <= 0) return;
-        if (!_attachPoint.GetChild(0).TryGetComponent(out _weapon)) return;
-        _weapon.Pickup(this);
     }
 
     private void AttackTargetInSightUpdate()

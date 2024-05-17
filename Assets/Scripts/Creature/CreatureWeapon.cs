@@ -2,7 +2,10 @@ using UnityEngine;
 
 public abstract class CreatureWeapon : MonoBehaviour
 {
+    [Header("Creature")]
     [SerializeField] protected Transform _attachPoint;
+    [SerializeField] protected Animator _animator;
+
     public Transform AttachPoint => _attachPoint;
 
     public int Team => _health.Team;
@@ -65,6 +68,13 @@ public abstract class CreatureWeapon : MonoBehaviour
     {
         _health = GetComponent<CreatureHealth>();
         _controller = GetComponent<CreatureController>();
+        InitWeapon();
+    }
+
+    protected void InitWeapon()
+    {
+        _weapon = _attachPoint.GetChild(0).GetComponent<Weapon>();
+        _weapon.Pickup(this);
     }
 
     private void AttackUpdate()
@@ -80,6 +90,10 @@ public abstract class CreatureWeapon : MonoBehaviour
     protected void Attack()
     {
         if (_weapon == null) return;
+
+        if (_weapon.CanAttack)
+            _animator.SetTrigger("Attack");
+
         _weapon.Attack();
     }
 }

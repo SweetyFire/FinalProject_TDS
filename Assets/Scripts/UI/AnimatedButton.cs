@@ -19,6 +19,10 @@ public class AnimatedButton : UIAutoNameElement, IPointerEnterHandler, IPointerE
     [SerializeField] private float _animSpeed = 0.18f;
     [SerializeField] private LeanTweenType _animType;
 
+    [Header("Sound")]
+    [SerializeField] private AudioClip _enterSound;
+    [SerializeField] private AudioClip _clickSound;
+
     private bool _isEnter;
     private bool _isPressed;
     private UIButtonAnimation _animation;
@@ -39,6 +43,7 @@ public class AnimatedButton : UIAutoNameElement, IPointerEnterHandler, IPointerE
     {
         _isEnter = true;
         SetAnim(UIButtonAnimation.Enter);
+        SoundManager.Instance.PlaySound(_enterSound);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -52,6 +57,7 @@ public class AnimatedButton : UIAutoNameElement, IPointerEnterHandler, IPointerE
     {
         if (!_isPressed) return;
 
+        SoundManager.Instance.PlaySound(_clickSound, randomizePitch: false);
         _isPressed = false;
         _isEnter = false;
         _onClick?.Invoke();

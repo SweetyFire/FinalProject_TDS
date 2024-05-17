@@ -98,6 +98,8 @@ MonoBehaviour:
   _pressedPosition: {x: 0, y: -2.5}
   _animSpeed: 0.18
   _animType: 32
+  _enterSound: {fileID: 8300000, guid: 7e141849f3b61af4db6979653c2493bb, type: 3}
+  _clickSound: {fileID: 8300000, guid: b39ec081bb693f14da71167322b19d52, type: 3}
 --- !u!1 &8065775347256375717
 GameObject:
   m_ObjectHideFlags: 0

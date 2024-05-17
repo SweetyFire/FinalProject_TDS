@@ -237,18 +237,20 @@ public class EnemyController : CreatureController
         if (DisabledMoveInput)
         {
             _agent.isStopped = true;
+            _animator.SetBool("IsRunning", false);
             return;
         }
 
         if (!CanTakeAction()) return;
         _agent.isStopped = false;
         ChangeSpeed();
-        GroundCheckUpdate(Vector3.zero);
+        GroundCheckUpdate();
 
         if (_currentTarget == null)
         {
             if (_wanderingStoppedTimer > 0f)
             {
+                _animator.SetBool("IsRunning", false);
                 _wanderingStoppedTimer -= _timeBetweenActions;
                 return;
             }
@@ -260,6 +262,7 @@ public class EnemyController : CreatureController
 
                 _agent.destination = targetPos;
                 _wanderingPosSelected = true;
+                _animator.SetBool("IsRunning", true);
             }
             else
             {
@@ -274,6 +277,16 @@ public class EnemyController : CreatureController
         {
             _agent.destination = _currentTarget.transform.position;
             FlexAction();
+
+            float curSpeed = _agent.velocity.magnitude;
+            if (curSpeed >= 0.1f)
+            {
+                _animator.SetBool("IsRunning", true);
+            }
+            else
+            {
+                _animator.SetBool("IsRunning", false);
+            }
         }
     }
 

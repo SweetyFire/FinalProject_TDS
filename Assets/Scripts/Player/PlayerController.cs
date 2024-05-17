@@ -11,6 +11,10 @@ public class PlayerController : CreatureController
     [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _lookMask;
 
+    [Header("Stairs")]
+    [SerializeField] private float _stepHeight = 0.3f;
+    [SerializeField] private float _stepSmooth = 0.1f;
+
     private Vector3 _moveDirection;
     private Vector2 _lookDirection;
     private Vector2 _mousePosition;
@@ -43,6 +47,15 @@ public class PlayerController : CreatureController
         Vector2 input = ctx.ReadValue<Vector2>();
         _moveDirection = new(input.x, 0f, input.y);
         _moveDirection = _moveDirection.RotateTo(0f, _cameraAngle, 0f);
+
+        if (_moveDirection != Vector3.zero)
+        {
+            _animator.SetBool("IsRunning", true);
+        }
+        else
+        {
+            _animator.SetBool("IsRunning", false);
+        }
 
         if (ctx.canceled) return;
         _abilityCaster.InterruptAbilityCasting();
@@ -136,31 +149,29 @@ public class PlayerController : CreatureController
         if (DisabledMoveInput) return;
 
         float slopeAngle = GetSlopeAngle();
-        if (IsGrounded)
+        Vector3 velocity;
+        if (IsGrounded && slopeAngle > 0f)
         {
-            Vector3 velocity;
-            if (slopeAngle > 0f)
+            if (slopeAngle > _maxSlopeAngle)
             {
-                if (slopeAngle > _maxSlopeAngle)
-                {
-                    velocity = Vector3.zero;
-                    velocity.y = _rb.velocity.y;
-                }
-                else
-                {
-                    velocity = GetSlopeMoveDirection() * _walkSpeed;
-                    _rb.useGravity = false;
-                }
+                velocity = Vector3.zero;
+                velocity.y = _rb.velocity.y;
             }
             else
             {
-                velocity = _moveDirection * _walkSpeed;
-                velocity.y = _rb.velocity.y;
+                velocity = GetSlopeMoveDirection() * _walkSpeed;
+                _rb.useGravity = false;
             }
-
-            _rb.velocity = velocity;
+        }
+        else
+        {
+            velocity = _moveDirection * _walkSpeed;
+            velocity.y = _rb.velocity.y;
         }
 
+        _rb.velocity = velocity;
+
+        StepClimbFixedUpdate();
         SpeedControl();
     }
 
@@ -211,6 +222,22 @@ public class PlayerController : CreatureController
         _rb.rotation = Quaternion.RotateTowards(_rb.rotation, rotation, _rotationSpeed);
     }
 
+    private void StepClimbFixedUpdate()
+    {
+        if (_moveDirection == Vector3.zero) return;
+
+        Vector3 upperCastPos = transform.position + Vector3.up * (_stepHeight + 0.1f);
+        float castDistanceUpper = _collider.radius + 0.2f;
+
+        if (IsLowerCast())
+        {
+            if (!Physics.Raycast(upperCastPos, _moveDirection, castDistanceUpper, _groundLayer))
+            {
+                _rb.position += Vector3.up * _stepSmooth;
+            }
+        }
+    }
+
     private void ActivateAbility(int index)
     {
         if (_abilityCaster.CanCasting(index))
@@ -223,13 +250,10 @@ public class PlayerController : CreatureController
 
     private bool OnSlope()
     {
-        if (IsGrounded)
-        {
-            float angle = GetSlopeAngle();
-            return angle != 0f && angle <= _maxSlopeAngle;
-        }
+        if (!IsGrounded) return false;
 
-        return false;
+        float angle = GetSlopeAngle();
+        return angle != 0f && angle <= _maxSlopeAngle;
     }
 
     private void SpeedControl()
@@ -253,12 +277,21 @@ public class PlayerController : CreatureController
 
     private float GetSlopeAngle()
     {
+        if (!IsLowerCast()) return 0f;
         return Vector3.Angle(Vector3.up, _groundHit.normal);
     }
 
     private Vector3 GetSlopeMoveDirection()
     {
         return Vector3.ProjectOnPlane(_moveDirection, _groundHit.normal).normalized;
+    }
+
+    private bool IsLowerCast()
+    {
+        Vector3 lowerCastPos = transform.position + Vector3.up * 0.1f;
+        Vector3 direction = _moveDirection == Vector3.zero ? transform.forward : _moveDirection;
+        float castDistanceLower = _collider.radius + 0.1f;
+        return Physics.Raycast(lowerCastPos, direction, castDistanceLower, _groundLayer);
     }
 
 #if UNITY_EDITOR
@@ -286,6 +319,35 @@ public class PlayerController : CreatureController
             Gizmos.color = Color.red;
             Gizmos.DrawRay(castPos, groundCheckDistance * Vector3.down);
             Gizmos.DrawWireSphere(castPos + groundCheckDistance * Vector3.down, groundCheckRadius);
+        }
+
+
+        Vector3 lowerCastPos = transform.position + Vector3.up * 0.1f;
+        Vector3 upperCastPos = lowerCastPos + Vector3.up * _stepHeight;
+        Vector3 direction = _moveDirection == Vector3.zero ? transform.forward : _moveDirection;
+
+        float castDistanceLower = col.radius + 0.1f;
+        float castDistanceUpper = col.radius + 0.2f;
+        if (Physics.Raycast(lowerCastPos, direction, castDistanceLower, _groundLayer))
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(lowerCastPos, direction * castDistanceLower);
+
+            if (!Physics.Raycast(upperCastPos, direction, castDistanceUpper, _groundLayer))
+            {
+                Gizmos.color = Color.red;
+            }
+            else
+            {
+                Gizmos.color = Color.green;
+            }
+
+            Gizmos.DrawRay(upperCastPos, direction * castDistanceUpper);
+        }
+        else
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(lowerCastPos, direction * castDistanceLower);
         }
     }
 #endif

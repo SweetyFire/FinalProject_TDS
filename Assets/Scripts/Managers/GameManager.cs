@@ -1,12 +1,9 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
-    [SerializeField] private TMP_Dropdown _qualityDropdown;
 
     public void Init()
     {
@@ -19,8 +16,6 @@ public class GameManager : MonoBehaviour
             Destroy(this);
             return;
         }
-
-        InitSettings();
     }
 
     public void OpenScene(string sceneName)
@@ -31,15 +26,5 @@ public class GameManager : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
-    }
-
-    public void SetQualityLevel(int level)
-    {
-        QualitySettings.SetQualityLevel(Mathf.Clamp(level, 0, QualitySettings.count));
-    }
-
-    private void InitSettings()
-    {
-        _qualityDropdown.value = QualitySettings.GetQualityLevel();
     }
 }

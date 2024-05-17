@@ -10,7 +10,7 @@ public class RayWeapon : AimWeapon
             {
                 if (health.Team != _owner.Team)
                 {
-                    health.TakeDamage(_damage);
+                    health.TakeDamage(_damage, transform.position);
                 }
             }
         }

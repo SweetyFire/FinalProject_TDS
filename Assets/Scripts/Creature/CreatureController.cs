@@ -1,9 +1,15 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class CreatureController : MonoBehaviour
 {
     [Header("Creature")]
     [SerializeField] protected LayerMask _groundLayer;
+    [SerializeField] protected Animator _animator;
+
+    [Header("Sound")]
+    [SerializeField] protected AudioSource _footstepAudioSource;
+    [SerializeField] protected List<AudioClip> _footstepSounds = new();
 
     public float Height => _collider.height;
     public Vector3 Center => transform.position + Vector3.up;
@@ -40,6 +46,36 @@ public abstract class CreatureController : MonoBehaviour
         _health = GetComponent<CreatureHealth>();
     }
 
+    public void EnableMove()
+    {
+        if (_isStunned) return;
+        _disabledMoveInput = false;
+    }
+
+    public void DisableMove()
+    {
+        _disabledMoveInput = true;
+    }
+
+    public void EnableLook()
+    {
+        if (_isStunned) return;
+        _disabledLookInput = false;
+    }
+
+    public void DisableLook()
+    {
+        _disabledLookInput = true;
+    }
+
+    public void PlayFootsteps()
+    {
+        _footstepAudioSource.Stop();
+        _footstepAudioSource.clip = _footstepSounds.GetRandom();
+        _footstepAudioSource.SetRandomPitchAndVolume(0.9f, 1.1f, 0.5f, 0.6f);
+        _footstepAudioSource.Play();
+    }
+
     public void Move(Vector3 velocity, float time)
     {
         _pushVelocity = velocity;
@@ -74,25 +110,8 @@ public abstract class CreatureController : MonoBehaviour
         _isGrounded = Physics.SphereCast(castPos, HalfColliderRadius, Vector3.down, out _groundHit, GroundCheckDistance, _groundLayer);
     }
 
-    public void EnableMove()
+    protected void GroundCheckUpdate()
     {
-        if (_isStunned) return;
-        _disabledMoveInput = false;
-    }
-
-    public void DisableMove()
-    {
-        _disabledMoveInput = true;
-    }
-
-    public void EnableLook()
-    {
-        if (_isStunned) return;
-        _disabledLookInput = false;
-    }
-
-    public void DisableLook()
-    {
-        _disabledLookInput = true;
+        GroundCheckUpdate(Vector3.zero);
     }
 }

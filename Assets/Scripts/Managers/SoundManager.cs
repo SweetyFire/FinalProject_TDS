@@ -1,26 +1,10 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.Audio;
-using UnityEngine.UI;
 
 public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance { get; private set; }
 
-    [SerializeField] private AudioMixer _mixer;
-    [Header("Master")]
-    [SerializeField] private TextMeshProUGUI _masterVolumeText;
-    [SerializeField] private Slider _masterVolumeSlider;
-    [Header("Music")]
-    [SerializeField] private TextMeshProUGUI _musicVolumeText;
-    [SerializeField] private Slider _musicVolumeSlider;
-    [Header("SoundFX")]
-    [SerializeField] private TextMeshProUGUI _soundFXText;
-    [SerializeField] private Slider _soundFXSlider;
-
-    private const string MUSIC_VOLUME_NAME = "Music";
-    private const string MASTER_VOLUME_NAME = "Master";
-    private const string SOUNDFX_VOLUME_NAME = "SoundFX";
+    [SerializeField] private AudioSource _audioSource;
 
     public void Init()
     {
@@ -33,58 +17,35 @@ public class SoundManager : MonoBehaviour
             Destroy(this);
             return;
         }
-
-        InitSliders();
     }
 
-    public void SetMasterVolume(float volume)
+    public void PlaySound(AudioClip clip, bool randomizePitch = true, bool randomizeVolume = true)
     {
-        _mixer.SetFloat(MASTER_VOLUME_NAME, Mathf.Log10(GetClampedSliderValue(volume)) * 20f);
-        SetSliderTextPercent(_masterVolumeText, volume);
-    }
+        if (clip == null) return;
+        if (_audioSource.IsPlaying())
+        {
+            if (_audioSource.GetTimePercent() < 0.5f) return;
+        }
 
-    public void SetMusicVolume(float volume)
-    {
-        _mixer.SetFloat(MUSIC_VOLUME_NAME, Mathf.Log10(GetClampedSliderValue(volume)) * 20f);
-        SetSliderTextPercent(_musicVolumeText, volume);
-    }
-
-    public void SetSoundFXVolume(float volume)
-    {
-        _mixer.SetFloat(SOUNDFX_VOLUME_NAME, Mathf.Log10(GetClampedSliderValue(volume)) * 20f);
-        SetSliderTextPercent(_soundFXText, volume);
-    }
-
-    private float GetClampedSliderValue(float volume)
-    {
-        return Mathf.Clamp(volume, 0.0001f, 1f);
-    }
-
-    private void InitSliders()
-    {
-        float volume = GetVolume(SOUNDFX_VOLUME_NAME);
-        _masterVolumeSlider.value = volume;
-        SetSliderTextPercent(_soundFXText, volume);
-
-        volume = GetVolume(MUSIC_VOLUME_NAME);
-        _musicVolumeSlider.value = volume;
-        SetSliderTextPercent(_musicVolumeText, volume);
-
-        volume = GetVolume(MASTER_VOLUME_NAME);
-        _masterVolumeSlider.value = volume;
-        SetSliderTextPercent(_masterVolumeText, volume);
-    }
-
-    private void SetSliderTextPercent(TextMeshProUGUI text, float value)
-    {
-        text.text = ((int)(value * 100f)).ToString() + "%";
-    }
-
-    private float GetVolume(string name)
-    {
-        if (_mixer.GetFloat(name, out float volume))
-            return Mathf.Pow(10f, volume / 20f);
+        _audioSource.Stop();
+        _audioSource.clip = clip;
+        if (randomizePitch)
+        {
+            _audioSource.pitch = Random.Range(0.9f, 1.1f);
+        }
         else
-            return 1f;
+        {
+            _audioSource.pitch = 1f;
+        }
+
+        if (randomizeVolume)
+        {
+            _audioSource.volume = Random.Range(0.9f, 1f);
+        }
+        else
+        {
+            _audioSource.volume = 1f;
+        }
+        _audioSource.Play();
     }
 }

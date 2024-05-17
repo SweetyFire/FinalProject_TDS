@@ -59,7 +59,7 @@ public class Projectile : MonoBehaviour
         {
             if (health.Team != _team)
             {
-                health.TakeDamage(_damage);
+                health.TakeDamage(_damage, transform.position);
             }
         }
 
