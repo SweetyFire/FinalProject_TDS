@@ -2692,12 +2692,12 @@ PrefabInstance:
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 6
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
@@ -2707,6 +2707,11 @@ PrefabInstance:
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5792091324012322290}
+    - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
+        type: 3}
+      propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 432208354546707168}
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
@@ -2722,7 +2727,7 @@ PrefabInstance:
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SetActive
+      value: SaveSettings
       objectReference: {fileID: 0}
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
@@ -2732,7 +2737,7 @@ PrefabInstance:
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: UnityEngine.GameObject, UnityEngine
+      value: SettingsUI, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
@@ -2742,7 +2747,7 @@ PrefabInstance:
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}
       propertyPath: _onClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_BoolArgument
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7752346199491459194, guid: 7918d330a0134ce42990b6abd5d2e2dd,
         type: 3}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using UnityEngine;
@@ -40,6 +41,7 @@ public static class SaveSystem
     private static readonly Dictionary<string, string> _mainValues = new();
 
     private static bool _dataLoaded = false;
+    private static int _logLevel = 1;
 
     static SaveSystem()
     {
@@ -73,6 +75,32 @@ public static class SaveSystem
         }
     }
 
+    public static void SetConvertibleValue(string key, IConvertible value)
+    {
+        LoadFirstTime();
+        if (_mainValues.ContainsKey(key))
+        {
+            _mainValues[key] = value.ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            _mainValues.Add(key, value.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    public static void SetFormatValue(string key, IFormattable value)
+    {
+        LoadFirstTime();
+        if (_mainValues.ContainsKey(key))
+        {
+            _mainValues[key] = value.ToString(string.Empty, CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            _mainValues.Add(key, value.ToString(string.Empty, CultureInfo.InvariantCulture));
+        }
+    }
+
 
     public static bool TryGetInt(string key, out int value)
     {
@@ -86,15 +114,17 @@ public static class SaveSystem
 
             if (!int.TryParse(stringValue, out value))
             {
-                Debug.LogWarning($"Key \"{key}\" isn't integer");
+                if (_logLevel > 0)
+                    Debug.LogWarning($"Key \"{key}\" isn't integer");
+
                 return false;
             }
 
             return true;
         }
-        else
+        else if (_logLevel > 1)
         {
-            Debug.LogWarning($"Saved int value with key \"{key}\" doesn't exists");
+            Debug.Log($"Saved int value with key \"{key}\" doesn't exists");
         }
 
         return false;
@@ -120,15 +150,17 @@ public static class SaveSystem
 
             if (!float.TryParse(stringValue, out value))
             {
-                Debug.LogWarning($"Key \"{key}\" isn't float");
+                if (_logLevel > 0)
+                    Debug.LogWarning($"Key \"{key}\" isn't float");
+
                 return false;
             }
 
             return true;
         }
-        else
+        else if (_logLevel > 1)
         {
-            Debug.LogWarning($"Saved float value with key \"{key}\" doesn't exists");
+            Debug.Log($"Saved float value with key \"{key}\" doesn't exists");
         }
 
         return false;
@@ -154,15 +186,16 @@ public static class SaveSystem
 
             if (!char.TryParse(stringValue, out value))
             {
-                Debug.LogWarning($"Key \"{key}\" isn't char");
+                if (_logLevel > 0)
+                    Debug.LogWarning($"Key \"{key}\" isn't char");
                 return false;
             }
 
             return true;
         }
-        else
+        else if (_logLevel > 1)
         {
-            Debug.LogWarning($"Saved char with key \"{key}\" doesn't exists");
+            Debug.Log($"Saved char with key \"{key}\" doesn't exists");
         }
 
         return false;
@@ -171,6 +204,41 @@ public static class SaveSystem
     public static char GetChar(string key)
     {
         if (TryGetChar(key, out char value))
+            return value;
+
+        return default;
+    }
+
+    public static bool TryGetBool(string key, out bool value)
+    {
+        value = default;
+        if (!File.Exists(_mainFilePath)) return false;
+
+        LoadFirstTime();
+        if (_mainValues.ContainsKey(key))
+        {
+            string stringValue = _mainValues[key];
+
+            if (!bool.TryParse(stringValue, out value))
+            {
+                if (_logLevel > 0)
+                    Debug.LogWarning($"Key \"{key}\" isn't bool");
+                return false;
+            }
+
+            return true;
+        }
+        else if (_logLevel > 1)
+        {
+            Debug.LogWarning($"Saved bool with key \"{key}\" doesn't exists");
+        }
+
+        return false;
+    }
+
+    public static bool GetBool(string key)
+    {
+        if (TryGetBool(key, out bool value))
             return value;
 
         return default;
@@ -187,7 +255,7 @@ public static class SaveSystem
             value = _mainValues[key];
             return true;
         }
-        else
+        else if (_logLevel > 1)
         {
             Debug.LogWarning($"Saved string with key \"{key}\" doesn't exists");
         }

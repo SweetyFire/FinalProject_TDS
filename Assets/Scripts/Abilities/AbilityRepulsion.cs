@@ -25,7 +25,7 @@ public class AbilityRepulsion : AbilityArea
     private void Repulsion(CreatureController controller)
     {
         Vector3 pushDirection = (controller.transform.position - transform.position).normalized;
-        controller.Move(pushDirection * _force, _repulsionTime);
+        controller.MoveTime(pushDirection * _force, _repulsionTime);
     }
 
     private void RepulsionRigidbodies()

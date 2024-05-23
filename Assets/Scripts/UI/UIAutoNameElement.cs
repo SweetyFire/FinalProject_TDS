@@ -1,6 +1,9 @@
 using TMPro;
-using UnityEditor;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [ExecuteAlways]
 public class UIAutoNameElement : MonoBehaviour
@@ -10,20 +13,23 @@ public class UIAutoNameElement : MonoBehaviour
 
     private void Update()
     {
-        SetAutoName();
+        SetAutoNameUpdate();
     }
 
-    protected void SetAutoName()
+    protected void SetAutoNameUpdate()
     {
         if (_text == null)
             InitAutoNameTextComponent();
 
         if (_text == null) return;
+        if (_text.text == name) return;
 
         Undo.RecordObject(_text, "Auto name");
         _text.text = name;
+
         EditorUtility.SetDirty(_text);
-        PrefabUtility.RecordPrefabInstancePropertyModifications(_text);
+        if (PrefabUtility.IsPartOfAnyPrefab(_text))
+            PrefabUtility.RecordPrefabInstancePropertyModifications(_text);
     }
 
     protected virtual void InitAutoNameTextComponent()

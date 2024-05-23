@@ -8,7 +8,7 @@ public class ProjectileWeapon : AimWeapon
 
     protected override void AttackStart()
     {
-        Projectile projectile = Instantiate(_projectilePrefab, _attackPoint.position, _attackPoint.rotation);
+        Projectile projectile = Instantiate(_projectilePrefab, _attackPoint.position, _owner.transform.rotation);
         projectile.Init(_projectileFlySpeed, _attackDistance, this);
     }
 

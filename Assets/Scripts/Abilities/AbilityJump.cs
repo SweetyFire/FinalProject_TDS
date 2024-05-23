@@ -4,62 +4,40 @@ public class AbilityJump : AbilityDash
 {
     [Header("Jump")]
     [SerializeField] private float _jumpStrength;
+    [SerializeField] private VectorDirection _jumpDirection = VectorDirection.Up;
 
-    private float _groundCheckTimer;
-    private bool _upMovement;
+    public override void Init(AbilityCaster caster)
+    {
+        base.Init(caster);
+        enabled = false;
+    }
 
     private void Update()
     {
-        DisableWhenGroundedUpdate();
+        CheckGroundedUpdate();
     }
 
     public override void Activate()
     {
-        if (_activated) return;
+        enabled = false;
+        Vector3 dashVelocity = _owner.Controller.CalculatePushDirection(_direction);
+        dashVelocity *= _speed;
 
-        _groundCheckTimer = 0.5f;
-        _upMovement = true;
-        base.Activate();
+        Vector3 jumpVelocity = _owner.Controller.CalculatePushDirection(_jumpDirection);
+        jumpVelocity *= _jumpStrength;
+
+        _owner.Controller.MoveDistance(dashVelocity + jumpVelocity, _maxDistance, false).SetOnComplete(StartCheckGround);
     }
 
-    protected override void MoveOwnerFixedUpdate()
+    private void CheckGroundedUpdate()
     {
-        if (_upMovement)
-        {
-            Vector3 velocity = Vector3.up * _jumpStrength;
-            velocity += GetDirection() * _speed;
-            _owner.Controller.Move(velocity);
-        }
-        else
-        {
-            base.MoveOwnerFixedUpdate();
-        }
+        if (!_owner.Controller.IsGrounded) return;
+        enabled = false;
+        Ended();
     }
 
-    protected override void AddCurrentDistanceFixedUpdate()
+    private void StartCheckGround()
     {
-        _currentDistance += _jumpStrength * Time.fixedDeltaTime;
-    }
-
-    protected override void DisableOnMaxDistance()
-    {
-        if (_currentDistance < _maxDistance) return;
-        _upMovement = false;
-    }
-
-    private void DisableWhenGroundedUpdate()
-    {
-        if (!_activated) return;
-
-        if (_groundCheckTimer > 0)
-        {
-            _groundCheckTimer -= Time.deltaTime;
-            return;
-        }
-
-        if (_owner.Controller.IsGrounded)
-        {
-            Disable();
-        }
+        enabled = true;
     }
 }

@@ -12,18 +12,19 @@ public abstract class CreatureWeapon : MonoBehaviour
     public bool IsAttacking => _isAttacking;
     public CreatureController Controller => _controller;
     public CreatureHealth Health => _health;
-    public bool DisabledAttack => _disabledAttack || _controller.IsStunned;
+    public bool DisabledAttack => _disabledAttack || _controller.IsStunned || !_health.IsAlive || !GameLoader.Instance.GameLoaded || GameManager.GamePaused;
 
     public Weapon Weapon => _weapon;
     protected Weapon _weapon;
     protected CreatureHealth _health;
     protected CreatureController _controller;
-    protected bool _disabledAttack;
+    private bool _disabledAttack;
     private bool _isAttacking;
 
-    protected virtual void Awake()
+    protected virtual void Start()
     {
-        InitComponents();
+        if (_weapon == null)
+            throw new System.Exception($"{gameObject.name} doesn't have any weapon");
     }
 
     protected virtual void Update()
@@ -31,13 +32,16 @@ public abstract class CreatureWeapon : MonoBehaviour
         AttackUpdate();
     }
 
+    public void Init()
+    {
+        InitComponents();
+    }
+
     public virtual bool TryAddWeapon(Weapon weapon)
     {
         if (_weapon == null)
         {
-            _weapon = weapon;
-            _weapon.transform.SetParent(_attachPoint);
-            _weapon.transform.SetLocalPositionAndRotation(Vector3.zero,Quaternion.identity);
+            SetWeapon(weapon);
             return true;
         }
         else
@@ -73,14 +77,21 @@ public abstract class CreatureWeapon : MonoBehaviour
 
     protected void InitWeapon()
     {
-        _weapon = _attachPoint.GetChild(0).GetComponent<Weapon>();
+        SetWeapon(_attachPoint.GetChild(0).GetComponent<Weapon>());
         _weapon.Pickup(this);
+    }
+
+    protected virtual void SetWeapon(Weapon weapon)
+    {
+        Weapon prevWeapon = _weapon;
+
+        _weapon = weapon;
+        _weapon.transform.SetParent(_attachPoint);
+        _weapon.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
     }
 
     private void AttackUpdate()
     {
-        if (DisabledAttack) return;
-
         if (_isAttacking)
         {
             Attack();
@@ -89,10 +100,12 @@ public abstract class CreatureWeapon : MonoBehaviour
 
     protected void Attack()
     {
+        if (DisabledAttack) return;
+
         if (_weapon == null) return;
 
         if (_weapon.CanAttack)
-            _animator.SetTrigger("Attack");
+            _animator.SetTrigger(_weapon.AnimationAttack);
 
         _weapon.Attack();
     }

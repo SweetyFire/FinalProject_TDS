@@ -89,6 +89,24 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interaction"",
+                    ""type"": ""Button"",
+                    ""id"": ""3bdceb3b-1814-494c-b867-eed53038b028"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Back"",
+                    ""type"": ""Button"",
+                    ""id"": ""601249cb-1331-44b4-bd6a-a46c3a7a6510"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -267,6 +285,50 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""UltimateAbility"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0512fbd3-8181-4624-8102-3c3b96306da6"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Interaction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a66c2aa5-3c84-4cb8-89c6-61e0ab0169e7"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Interaction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2ab6c337-3fa2-4aae-99e1-212da0e2fbbd"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""52ce6176-300f-4497-8977-5fec786d0f32"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -310,6 +372,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_FirstAbility = m_Player.FindAction("FirstAbility", throwIfNotFound: true);
         m_Player_SecondAbility = m_Player.FindAction("SecondAbility", throwIfNotFound: true);
         m_Player_UltimateAbility = m_Player.FindAction("UltimateAbility", throwIfNotFound: true);
+        m_Player_Interaction = m_Player.FindAction("Interaction", throwIfNotFound: true);
+        m_Player_Back = m_Player.FindAction("Back", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -378,6 +442,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_FirstAbility;
     private readonly InputAction m_Player_SecondAbility;
     private readonly InputAction m_Player_UltimateAbility;
+    private readonly InputAction m_Player_Interaction;
+    private readonly InputAction m_Player_Back;
     public struct PlayerActions
     {
         private @PlayerControls m_Wrapper;
@@ -389,6 +455,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @FirstAbility => m_Wrapper.m_Player_FirstAbility;
         public InputAction @SecondAbility => m_Wrapper.m_Player_SecondAbility;
         public InputAction @UltimateAbility => m_Wrapper.m_Player_UltimateAbility;
+        public InputAction @Interaction => m_Wrapper.m_Player_Interaction;
+        public InputAction @Back => m_Wrapper.m_Player_Back;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -419,6 +487,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @UltimateAbility.started += instance.OnUltimateAbility;
             @UltimateAbility.performed += instance.OnUltimateAbility;
             @UltimateAbility.canceled += instance.OnUltimateAbility;
+            @Interaction.started += instance.OnInteraction;
+            @Interaction.performed += instance.OnInteraction;
+            @Interaction.canceled += instance.OnInteraction;
+            @Back.started += instance.OnBack;
+            @Back.performed += instance.OnBack;
+            @Back.canceled += instance.OnBack;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -444,6 +518,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @UltimateAbility.started -= instance.OnUltimateAbility;
             @UltimateAbility.performed -= instance.OnUltimateAbility;
             @UltimateAbility.canceled -= instance.OnUltimateAbility;
+            @Interaction.started -= instance.OnInteraction;
+            @Interaction.performed -= instance.OnInteraction;
+            @Interaction.canceled -= instance.OnInteraction;
+            @Back.started -= instance.OnBack;
+            @Back.performed -= instance.OnBack;
+            @Back.canceled -= instance.OnBack;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -488,5 +568,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnFirstAbility(InputAction.CallbackContext context);
         void OnSecondAbility(InputAction.CallbackContext context);
         void OnUltimateAbility(InputAction.CallbackContext context);
+        void OnInteraction(InputAction.CallbackContext context);
+        void OnBack(InputAction.CallbackContext context);
     }
 }

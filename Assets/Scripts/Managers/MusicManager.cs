@@ -14,15 +14,15 @@ public class MusicManager : MonoBehaviour
     private bool _isPlaying;
     private float _timeForNextMusic;
 
-    private void Start()
-    {
-        SetQueue();
-        Play();
-    }
-
     private void Update()
     {
         MusicUpdate();
+    }
+
+    public void StartMusic()
+    {
+        SetQueue();
+        Play();
     }
 
     private void SetQueue()

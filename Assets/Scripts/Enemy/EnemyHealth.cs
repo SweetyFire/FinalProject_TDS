@@ -1,3 +1,4 @@
+using UnityEngine;
 
 public class EnemyHealth : CreatureHealth
 {
@@ -7,6 +8,20 @@ public class EnemyHealth : CreatureHealth
     protected override void InitComponents()
     {
         base.InitComponents();
-        _enemyController = GetComponent<EnemyController>();
+        if (_enemyController == null)
+            _enemyController = GetComponent<EnemyController>();
+    }
+
+    public override void TakeDamage(float damage, Vector3 attackerPosition)
+    {
+        base.TakeDamage(damage, attackerPosition);
+        Controller.Sight.RotateTo(attackerPosition);
+    }
+
+    protected override void DestroyMe()
+    {
+        base.DestroyMe();
+        _enemyController.enabled = false;
+        _enemyController.Sight.enabled = false;
     }
 }

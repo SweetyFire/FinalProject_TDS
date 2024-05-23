@@ -7,7 +7,7 @@ public abstract class AbilityBase : MonoBehaviour
     public UnityEvent OnCompleted;
     protected AbilityCaster _owner;
 
-    public void Init(AbilityCaster caster)
+    public virtual void Init(AbilityCaster caster)
     {
         _owner = caster;
     }

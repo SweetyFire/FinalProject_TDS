@@ -56,7 +56,7 @@ SphereCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Radius: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &3886320879955769040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70,13 +70,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _damage: 8
-  _attackRate: 0.5
-  _attackDistance: 1.1
-  _impactSounds:
+  _attackRate: 1.2
+  _attackDistance: 1.5
+  _attackSounds:
+  - {fileID: 8300000, guid: dbbab6d6c3808ed4da2bbde1cda78794, type: 3}
+  - {fileID: 8300000, guid: 2dfed6400cc8e9949abaf3a5b7ac4a60, type: 3}
+  _attackAnimation: 0
+  _attackCollider: {fileID: 3536588438483196974}
+  _hitSounds:
   - {fileID: 8300000, guid: 9d4550c4d61703d4ca0fe8d8772721ab, type: 3}
   - {fileID: 8300000, guid: 6101525cb484be94ba78cb5dc49687f9, type: 3}
   - {fileID: 8300000, guid: 38088306c408ea048b9cf6f7bcd87b3e, type: 3}
-  _attackCollider: {fileID: 4690587580541428831}
 --- !u!1 &6712002183951793076
 GameObject:
   m_ObjectHideFlags: 0
@@ -169,7 +173,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2254166365354448537}
-  - component: {fileID: 4690587580541428831}
+  - component: {fileID: 3536588438483196974}
   - component: {fileID: 8275888840166946035}
   m_Layer: 8
   m_Name: AttackCollider
@@ -187,14 +191,14 @@ Transform:
   m_GameObject: {fileID: 6945608373316613229}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3665108860369214099}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &4690587580541428831
-SphereCollider:
+--- !u!136 &3536588438483196974
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -211,9 +215,11 @@ SphereCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 0
-  serializedVersion: 3
-  m_Radius: 1.2
-  m_Center: {x: 0, y: 0, z: 0}
+  serializedVersion: 2
+  m_Radius: 1
+  m_Height: 3
+  m_Direction: 1
+  m_Center: {x: 0, y: 1.5, z: 0}
 --- !u!114 &8275888840166946035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -284,7 +290,7 @@ Transform:
   m_GameObject: {fileID: 8831979852446007753}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.72, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

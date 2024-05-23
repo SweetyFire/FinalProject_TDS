@@ -4,19 +4,14 @@ using UnityEngine;
 public class MeleeWeapon : Weapon
 {
     [Header("Melee")]
-    [SerializeField] private SphereCollider _attackCollider;
+    [SerializeField] private Collider _attackCollider;
+    [SerializeField] private List<AudioClip> _hitSounds = new();
 
     private List<CreatureHealth> _targets = new();
 
     protected override void AttackStart()
     {
-        if (_targets.Count > 0)
-        {
-            _audioSource.Stop();
-            _audioSource.clip = _impactSounds.GetRandom();
-            _audioSource.SetRandomPitchAndVolume(0.9f, 1.1f, 0.6f, 0.7f);
-            _audioSource.Play();
-        }
+        bool soundPlayed = false;
 
         for (int i = _targets.Count - 1; i >= 0; i--)
         {
@@ -24,6 +19,12 @@ public class MeleeWeapon : Weapon
             {
                 _targets.RemoveAt(i);
                 continue;
+            }
+
+            if (!soundPlayed)
+            {
+                PlaySound(_hitSounds.GetRandom());
+                soundPlayed = true;
             }
 
             _targets[i].TakeDamage(_damage, transform.position);

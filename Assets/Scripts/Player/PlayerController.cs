@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,10 +11,17 @@ public class PlayerController : CreatureController
     [SerializeField] private PlayerInput _playerInput;
     [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _lookMask;
+    [SerializeField] private CameraFollow _cameraFollow;
+
+    public Camera Camera => _camera;
 
     [Header("Stairs")]
     [SerializeField] private float _stepHeight = 0.3f;
     [SerializeField] private float _stepSmooth = 0.1f;
+
+    [Header("UI")]
+    [SerializeField] private GameplayUI _gameplayUI;
+    public GameplayUI GameplayUI => _gameplayUI;
 
     private Vector3 _moveDirection;
     private Vector2 _lookDirection;
@@ -22,23 +30,65 @@ public class PlayerController : CreatureController
     private PlayerWeapon _weapon;
     private AbilityCaster _abilityCaster;
 
-    private void Awake()
-    {
-        InitComponents();
-        SetCameraAngle();
-        InitAbilities();
-    }
+    private RaycastHit _groundHit;
 
-    private void Update()
+    private ToggleObject _currentToggleObject;
+    private List<ToggleObject> _toggleObjects = new();
+
+    private void Start()
     {
-        GroundCheckUpdate(_moveDirection);
+        if (_rb == null)
+            throw new System.Exception("Please put the GameLoader into the scene and assign the player to it");
     }
 
     private void FixedUpdate()
     {
         MoveFixedUpdate();
         LookFixedUpdate();
-        MoveTimeUpdate(Time.fixedDeltaTime);
+        MoveUpdate(Time.fixedDeltaTime);
+    }
+
+    public void Init()
+    {
+        InitComponents();
+        SetCameraAngle();
+        _abilityCaster.Init(this, _weapon);
+        _cameraFollow.InitAxis();
+    }
+
+    public void LoadProgress(PlayerData playerData)
+    {
+        transform.SetPositionAndRotation(playerData.position, playerData.rotation);
+        _cameraFollow.transform.position = transform.position;
+        _health.LoadProgress(playerData.health);
+    }
+
+    public void OnTriggerObjectEnter(ToggleObject toggleObject)
+    {
+        _currentToggleObject = toggleObject;
+        toggleObject.OnDeactivated += OnTriggerObjectDeactivated;
+
+        _toggleObjects.Add(toggleObject);
+        _gameplayUI.InteractibleHint.SetFollow(_currentToggleObject.gameObject);
+    }
+
+    public void OnTriggerObjectExit(ToggleObject toggleObject)
+    {
+        if (!_toggleObjects.Contains(toggleObject)) return;
+
+        toggleObject.OnDeactivated -= OnTriggerObjectDeactivated;
+        _toggleObjects.Remove(toggleObject);
+
+        if (_toggleObjects.Count > 0)
+        {
+            foreach (ToggleObject obj in  _toggleObjects)
+            {
+                if (!obj.Deactivated) return;
+            }
+        }
+
+        _currentToggleObject = null;
+        _gameplayUI.InteractibleHint.Disable();
     }
 
     #region Input
@@ -46,16 +96,21 @@ public class PlayerController : CreatureController
     {
         Vector2 input = ctx.ReadValue<Vector2>();
         _moveDirection = new(input.x, 0f, input.y);
-        _moveDirection = _moveDirection.RotateTo(0f, _cameraAngle, 0f);
-
-        if (_moveDirection != Vector3.zero)
-        {
-            _animator.SetBool("IsRunning", true);
-        }
-        else
+        
+        if (DisabledMoveInput || _moveDirection == Vector3.zero)
         {
             _animator.SetBool("IsRunning", false);
+            _animator.SetFloat("WalkX", 0f);
+            _animator.SetFloat("WalkZ", 0f);
         }
+        else if (!DisabledMoveInput)
+        {
+            _animator.SetBool("IsRunning", true);
+            _animator.SetFloat("WalkX", 0f);
+            _animator.SetFloat("WalkZ", Mathf.Clamp01(input.magnitude));
+        }
+
+        _moveDirection = _moveDirection.RotateTo(0f, _cameraAngle, 0f);
 
         if (ctx.canceled) return;
         _abilityCaster.InterruptAbilityCasting();
@@ -87,6 +142,14 @@ public class PlayerController : CreatureController
     {
         if (!ctx.started) return;
         ActivateAbility(2);
+    }
+
+    public void OnInteractible(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.started) return;
+        if (_currentToggleObject == null) return;
+
+        _currentToggleObject.Toggle();
     }
     #endregion /Input
 
@@ -128,28 +191,44 @@ public class PlayerController : CreatureController
         _rb.velocity = velocity;
     }
 
+    public override void EnablePhysics()
+    {
+        base.EnablePhysics();
+        _rb.isKinematic = false;
+    }
+
+    public override void DisablePhysics()
+    {
+        base.DisablePhysics();
+        _rb.isKinematic = true;
+    }
+
     protected override void InitComponents()
     {
         base.InitComponents();
         _weapon = GetComponent<PlayerWeapon>();
+        _weapon.Init();
         _abilityCaster = GetComponent<AbilityCaster>();
     }
 
     #endregion /Overrides
 
-    private void InitAbilities()
-    {
-        _abilityCaster.Init(this, _weapon);
-    }
-
     private void MoveFixedUpdate()
     {
         _rb.useGravity = true;
 
-        if (DisabledMoveInput) return;
+        Vector3 velocity;
+        if (DisabledMoveInput)
+        {
+            if (PushMove) return;
+
+            velocity = Vector3.zero;
+            velocity.y = _rb.velocity.y;
+            _rb.velocity = velocity;
+            return;
+        }
 
         float slopeAngle = GetSlopeAngle();
-        Vector3 velocity;
         if (IsGrounded && slopeAngle > 0f)
         {
             if (slopeAngle > _maxSlopeAngle)
@@ -170,9 +249,10 @@ public class PlayerController : CreatureController
         }
 
         _rb.velocity = velocity;
-
-        StepClimbFixedUpdate();
         SpeedControl();
+
+        if (IsGrounded && slopeAngle <= 5f)
+            StepClimbFixedUpdate();
     }
 
     private void LookFixedUpdate()
@@ -229,7 +309,7 @@ public class PlayerController : CreatureController
         Vector3 upperCastPos = transform.position + Vector3.up * (_stepHeight + 0.1f);
         float castDistanceUpper = _collider.radius + 0.2f;
 
-        if (IsLowerCast())
+        if (IsLowerCast(0.1f))
         {
             if (!Physics.Raycast(upperCastPos, _moveDirection, castDistanceUpper, _groundLayer))
             {
@@ -277,7 +357,9 @@ public class PlayerController : CreatureController
 
     private float GetSlopeAngle()
     {
-        if (!IsLowerCast()) return 0f;
+        if (!Physics.Raycast(transform.position, Vector3.down, out _groundHit, _collider.radius, _groundLayer)) return 0f;
+
+        if (!IsLowerCast(0.2f, 0.2f)) return 0f;
         return Vector3.Angle(Vector3.up, _groundHit.normal);
     }
 
@@ -286,41 +368,43 @@ public class PlayerController : CreatureController
         return Vector3.ProjectOnPlane(_moveDirection, _groundHit.normal).normalized;
     }
 
-    private bool IsLowerCast()
+    private bool IsLowerCast(float distanceFromFloor)
     {
-        Vector3 lowerCastPos = transform.position + Vector3.up * 0.1f;
+        return IsLowerCast(distanceFromFloor, 0.1f);
+    }
+
+    private bool IsLowerCast(float distanceFromFloor, float forwardDistance)
+    {
+        Vector3 lowerCastPos = transform.position + Vector3.up * distanceFromFloor;
         Vector3 direction = _moveDirection == Vector3.zero ? transform.forward : _moveDirection;
-        float castDistanceLower = _collider.radius + 0.1f;
+        float castDistanceLower = _collider.radius + forwardDistance;
         return Physics.Raycast(lowerCastPos, direction, castDistanceLower, _groundLayer);
     }
 
+    private void OnTriggerObjectDeactivated()
+    {
+        OnTriggerObjectExit(_currentToggleObject);
+    }
+
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         CapsuleCollider col;
         if (_collider == null)
-            col = GetComponent<CapsuleCollider>();
-        else
-            col = _collider;
+            _collider = GetComponent<CapsuleCollider>();
 
-        float groundCheckRadius = col.radius / 1.5f;
-        float groundCheckDistance = groundCheckRadius + _groundCheckOffset;
-        Vector3 castPos = (_groundCheckOffset + groundCheckRadius) * Vector3.up + transform.position;
-        castPos += _moveDirection * (groundCheckRadius / 2f);
+        col = _collider;
 
-        if (Physics.SphereCast(castPos, groundCheckRadius, Vector3.down, out RaycastHit hit, groundCheckDistance, _groundLayer))
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit slopeHit, _collider.radius, _groundLayer))
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawRay(castPos, Vector3.down * hit.distance);
-            Gizmos.DrawWireSphere(castPos + Vector3.down * hit.distance, groundCheckRadius);
+            Gizmos.DrawRay(transform.position, Vector3.down * slopeHit.distance);
         }
         else
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(castPos, groundCheckDistance * Vector3.down);
-            Gizmos.DrawWireSphere(castPos + groundCheckDistance * Vector3.down, groundCheckRadius);
+            Gizmos.DrawRay(transform.position, Vector3.down * _collider.radius);
         }
-
 
         Vector3 lowerCastPos = transform.position + Vector3.up * 0.1f;
         Vector3 upperCastPos = lowerCastPos + Vector3.up * _stepHeight;

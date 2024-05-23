@@ -1,22 +1,26 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 [DefaultExecutionOrder(-1)]
 public class Bootstrap : MonoBehaviour
 {
-    private GameManager _gameManager;
-    private SoundManager _soundManager;
+    [SerializeField] private List<InitializableBehavior> _initializables = new();
+    public UnityEvent OnAwake;
+    public UnityEvent OnStart;
 
     private void Awake()
     {
-        InitComponents();
+        for (int i = 0; i < _initializables.Count; i++)
+        {
+            _initializables[i].Initialize();
+        }
 
-        _gameManager.Init();
-        _soundManager.Init();
+        OnAwake?.Invoke();
     }
 
-    private void InitComponents()
+    private void Start()
     {
-        _gameManager = GetComponentInChildren<GameManager>();
-        _soundManager = GetComponentInChildren<SoundManager>();
+        OnStart?.Invoke();
     }
 }

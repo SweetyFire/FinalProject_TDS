@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class SoundManager : MonoBehaviour
+public class SoundManager : InitializableBehavior
 {
     public static SoundManager Instance { get; private set; }
 
     [SerializeField] private AudioSource _audioSource;
 
-    public void Init()
+    public override void Initialize()
     {
         if (Instance == null)
         {

@@ -1,5 +1,6 @@
 public enum VectorDirection
 {
+    Zero,
     Forward,
     Backward,
     Right,

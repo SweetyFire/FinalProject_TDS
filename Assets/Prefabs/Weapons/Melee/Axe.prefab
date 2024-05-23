@@ -13,6 +13,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Axe
       objectReference: {fileID: 0}
+    - target: {fileID: 3536588438483196974, guid: afb2f32d1c59f0f41b4dc6d8d16c2f73,
+        type: 3}
+      propertyPath: m_Height
+      value: 2.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3536588438483196974, guid: afb2f32d1c59f0f41b4dc6d8d16c2f73,
+        type: 3}
+      propertyPath: m_Center.y
+      value: 1.35
+      objectReference: {fileID: 0}
     - target: {fileID: 3665108860369214099, guid: afb2f32d1c59f0f41b4dc6d8d16c2f73,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -71,12 +81,12 @@ PrefabInstance:
     - target: {fileID: 3886320879955769040, guid: afb2f32d1c59f0f41b4dc6d8d16c2f73,
         type: 3}
       propertyPath: _attackRate
-      value: 1
+      value: 1.6
       objectReference: {fileID: 0}
     - target: {fileID: 3886320879955769040, guid: afb2f32d1c59f0f41b4dc6d8d16c2f73,
         type: 3}
       propertyPath: _attackDistance
-      value: 1
+      value: 1.35
       objectReference: {fileID: 0}
     - target: {fileID: 4690587580541428831, guid: afb2f32d1c59f0f41b4dc6d8d16c2f73,
         type: 3}

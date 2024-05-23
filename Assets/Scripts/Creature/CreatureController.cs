@@ -1,42 +1,71 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.AI;
 
 public abstract class CreatureController : MonoBehaviour
 {
     [Header("Creature")]
     [SerializeField] protected LayerMask _groundLayer;
     [SerializeField] protected Animator _animator;
+    [SerializeField] protected Transform _center;
+    [SerializeField] protected GroundChecker _groundChecker;
 
     [Header("Sound")]
     [SerializeField] protected AudioSource _footstepAudioSource;
     [SerializeField] protected List<AudioClip> _footstepSounds = new();
 
-    public float Height => _collider.height;
-    public Vector3 Center => transform.position + Vector3.up;
+    public float Height
+    {
+        get
+        {
+            float minValue = _collider.radius * 2f;
+            if (_collider.height < minValue)
+                return minValue;
+            else
+                return _collider.height;
+        }
+    }
+    public float HalfHeight
+    {
+        get
+        {
+            float minValue = _collider.radius * 2f;
+            float curValue = _collider.height / 2f;
+            if (curValue < minValue)
+                return minValue;
+            else
+                return curValue;
+        }
+    }
+    public Vector3 CenterPosition => _center.position;
+    public Transform Center => _center;
 
-    public bool IsGrounded => _isGrounded;
-    public bool DisabledMoveInput => _disabledMoveInput || _isStunned;
-    public bool DisabledLookInput => _disabledLookInput || _isStunned;
+    public bool IsGrounded => _groundChecker.IsGrounded;
+    public bool DisabledMoveInput => _disabledMoveInput || _isStunned || !_health.IsAlive || !GameLoader.Instance.GameLoaded || GameManager.GamePaused;
+    public bool DisabledLookInput => _disabledLookInput || _isStunned || !_health.IsAlive || !GameLoader.Instance.GameLoaded || GameManager.GamePaused;
     public int Team => _health.Team;
     public CreatureHealth Health => _health;
     public bool IsStunned => _isStunned;
 
     protected float HalfColliderRadius => _collider.radius / 1.5f;
-    protected float GroundCheckDistance => HalfColliderRadius + _groundCheckOffset;
 
     protected Rigidbody _rb;
     protected CapsuleCollider _collider;
     protected CreatureHealth _health;
 
-    protected RaycastHit _groundHit;
-    protected float _groundCheckOffset = 0.1f;
-
-    private bool _isGrounded;
     private bool _disabledMoveInput;
     private bool _disabledLookInput;
 
+    public bool PushMove => _pushTimer != -1f || _pushDistance != -1f;
+
+    private VectorDirection _pushDirection;
     private Vector3 _pushVelocity;
+    private float _pushSpeed;
     private float _pushTimer = -1f;
+    private float _pushDistance = -1f;
+    private bool _enableMoveAfterPush;
+    private MTweenObject _pushAction = new();
     private bool _isStunned;
 
     protected virtual void InitComponents()
@@ -44,6 +73,7 @@ public abstract class CreatureController : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _collider = GetComponent<CapsuleCollider>();
         _health = GetComponent<CreatureHealth>();
+        _health.Init();
     }
 
     public void EnableMove()
@@ -68,18 +98,145 @@ public abstract class CreatureController : MonoBehaviour
         _disabledLookInput = true;
     }
 
+    public virtual void EnablePhysics()
+    {
+        _collider.enabled = true;
+    }
+
+    public virtual void DisablePhysics()
+    {
+        _collider.enabled = false;
+    }
+
     public void PlayFootsteps()
     {
+        if (!IsGrounded) return;
+
+        if (_footstepAudioSource.IsPlaying())
+            if (_footstepAudioSource.GetTimePercent() < 0.5f) return;
+
         _footstepAudioSource.Stop();
         _footstepAudioSource.clip = _footstepSounds.GetRandom();
         _footstepAudioSource.SetRandomPitchAndVolume(0.9f, 1.1f, 0.5f, 0.6f);
         _footstepAudioSource.Play();
     }
 
-    public void Move(Vector3 velocity, float time)
+    public MTweenObject MoveTime(VectorDirection direction, float speed, float time, bool enableMoveAfter = true)
     {
-        _pushVelocity = velocity;
+        _pushAction.Reset();
+        _pushVelocity = Vector3.zero;
         _pushTimer = time;
+        _pushDirection = direction;
+        _pushSpeed = speed;
+        _enableMoveAfterPush = enableMoveAfter;
+        return _pushAction;
+    }
+
+    public MTweenObject MoveTime(Vector3 velocity, float time, bool enableMoveAfter = true)
+    {
+        _pushAction.Reset();
+        _pushVelocity = velocity;
+        _pushSpeed = _pushVelocity.magnitude;
+        _pushTimer = time;
+        _enableMoveAfterPush = enableMoveAfter;
+        return _pushAction;
+    }
+
+    public void CompletePushByTime()
+    {
+        if (_pushTimer <= -1f) return;
+
+        if (_enableMoveAfterPush)
+            EnableMove();
+
+        _pushTimer = -1f;
+        _pushAction.Complete();
+        _pushVelocity = Vector3.zero;
+    }
+
+    public MTweenObject MoveDistance(VectorDirection direction, float speed, float distance, bool enableMoveAfter = true)
+    {
+        _pushAction.Reset();
+        _pushVelocity = Vector3.zero;
+        _pushDirection = direction;
+        _pushDistance = distance;
+        _pushSpeed = speed;
+        _enableMoveAfterPush = enableMoveAfter;
+        return _pushAction;
+    }
+
+    public MTweenObject MoveDistance(Vector3 velocity, float distance, bool enableMoveAfter = true)
+    {
+        _pushAction.Reset();
+        _pushVelocity = velocity;
+        _pushSpeed = _pushVelocity.magnitude;
+        _pushDistance = distance;
+        _enableMoveAfterPush = enableMoveAfter;
+        return _pushAction;
+    }
+
+    public void CompletePushByDistance()
+    {
+        if (_pushDistance <= -1f) return;
+
+        if (_enableMoveAfterPush)
+            EnableMove();
+
+        _pushDistance = -1f;
+        _pushAction.Complete();
+        _pushVelocity = Vector3.zero;
+    }
+
+    public Vector3 CalculatePushDirection(VectorDirection direction)
+    {
+        return direction switch
+        {
+            VectorDirection.Forward => transform.forward,
+            VectorDirection.Backward => -transform.forward,
+            VectorDirection.Right => transform.right,
+            VectorDirection.Left => -transform.right,
+            VectorDirection.Up => transform.up,
+            VectorDirection.Down => -transform.up,
+            _ => Vector3.zero,
+        };
+    }
+
+    protected void MoveToPushDirection()
+    {
+        switch (_pushDirection)
+        {
+            case VectorDirection.Forward:
+                Move(transform.forward * _pushSpeed);
+                break;
+
+            case VectorDirection.Backward:
+                Move(-transform.forward * _pushSpeed);
+                break;
+
+            case VectorDirection.Right:
+                Move(transform.right * _pushSpeed);
+                break;
+
+            case VectorDirection.Left:
+                Move(-transform.right * _pushSpeed);
+                break;
+
+            case VectorDirection.Up:
+                Move(transform.up * _pushSpeed);
+                break;
+
+            case VectorDirection.Down:
+                Move(-transform.up * _pushSpeed);
+                break;
+
+            case VectorDirection.Movement:
+                MoveToMovementDirection(_pushSpeed);
+                break;
+
+            case VectorDirection.Look:
+                MoveToLookDirection(_pushSpeed);
+                break;
+        }
     }
 
     public abstract void Push(Vector3 velocity);
@@ -88,30 +245,48 @@ public abstract class CreatureController : MonoBehaviour
     public abstract void MoveToMovementDirection(float speed);
     public abstract void MoveToLookDirection(float speed);
 
-    protected void MoveTimeUpdate(float deltaTime)
+    protected void MoveUpdate(float deltaTime)
     {
-        if (_pushTimer <= -1f) return;
         if (_pushTimer > 0f)
         {
-            DisableMove();
-            _pushTimer -= deltaTime;
-            Move(_pushVelocity);
-            return;
+            PushByTime(deltaTime);
+        }
+        else if (_pushTimer > -1f)
+        {
+            CompletePushByTime();
         }
 
-        _pushTimer = -1f;
-        EnableMove();
+        if (_pushDistance > 0f)
+        {
+            PushByDistance(deltaTime);
+        }
+        else if (_pushDistance > -1f)
+        {
+            CompletePushByDistance();
+        }
     }
 
-    protected void GroundCheckUpdate(Vector3 moveDirection)
+    private void PushByDistance(float deltaTime)
     {
-        Vector3 castPos = (_groundCheckOffset + HalfColliderRadius) * Vector3.up + transform.position;
-        castPos += moveDirection * (HalfColliderRadius / 2f);
-        _isGrounded = Physics.SphereCast(castPos, HalfColliderRadius, Vector3.down, out _groundHit, GroundCheckDistance, _groundLayer);
+        DisableMove();
+        if (_pushVelocity == Vector3.zero)
+            MoveToPushDirection();
+        else
+            Move(_pushVelocity);
+
+        _pushDistance -= _pushSpeed * deltaTime;
+        _pushAction.Update();
     }
 
-    protected void GroundCheckUpdate()
+    private void PushByTime(float deltaTime)
     {
-        GroundCheckUpdate(Vector3.zero);
+        DisableMove();
+        if (_pushVelocity == Vector3.zero)
+            MoveToPushDirection();
+        else
+            Move(_pushVelocity);
+
+        _pushTimer -= deltaTime;
+        _pushAction.Update();
     }
 }

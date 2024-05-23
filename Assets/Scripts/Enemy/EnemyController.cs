@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
@@ -6,23 +5,25 @@ using Random = UnityEngine.Random;
 public class EnemyController : CreatureController
 {
     [Header("Enemy")]
-    [SerializeField] private float _viewingAngle = 90f;
-    [Header("Speed")]
     [SerializeField] private float _walkSpeed = 4f;
     [SerializeField] private float _minStoppingDistance = 3f;
     [SerializeField] private float _maxStoppingDistance = 10f;
-    [SerializeField] private float _minRotationSpeed = 100f;
-    [SerializeField] private float _maxRotationSpeed = 500f;
+    [SerializeField] private EnemySight _sight;
+
     [Header("Wandering")]
     [SerializeField] private float _wanderingSpeed = 3f;
     [SerializeField] private float _wanderingRadius = 10f;
     [SerializeField] private float _wanderingStoppingDistance = 1f;
+
     [Header("Flex")]
     [SerializeField] private float _minFlexTime = 1f;
     [SerializeField] private float _maxFlexTime = 2f;
     [SerializeField] private float _chanceToFlex = 45f;
 
+    public EnemySight Sight => _sight;
+
     private NavMeshAgent _agent;
+    private AIState _state;
 
     private float _actionTimer;
     private float _timeBetweenActions = 0.5f;
@@ -30,58 +31,80 @@ public class EnemyController : CreatureController
     private float _wanderingStoppedTimer;
     private bool _wanderingPosSelected;
 
-    public CreatureHealth CurrentTarget => _currentTarget;
-    private CreatureHealth _currentTarget;
-    private List<CreatureHealth> _creatureInSight = new();
-
-    public bool SeeCurrentTarget => _seeCurrentTarget;
-    private bool _seeCurrentTarget;
-
     private EnemyWeapon _weapon;
     private Vector3 _spawnedPosition;
 
     private float _flexTime;
     private Vector3 _flexDirection;
 
-    private void Awake()
+    private void Update()
+    {
+        WalkUpdate();
+        FlexUpdate();
+        ActionTimerUpdate();
+        MoveUpdate(Time.deltaTime);
+    }
+
+    public void Init()
     {
         InitComponents();
         InitValues();
     }
 
-    private void Update()
+    public void LoadProgress(EnemyData data)
     {
-        SightUpdate();
-        WalkUpdate();
-        LookUpdate();
-        FlexUpdate();
-        ActionTimerUpdate();
-        MoveTimeUpdate(Time.deltaTime);
+        transform.SetPositionAndRotation(data.position, data.rotation);
+        _health.LoadProgress(data.health);
     }
 
-    public void OnCreatureEnterTrigger(Collider other)
+    public void SetChaseState()
     {
-        if (_currentTarget != null) return;
+        _state = AIState.Chase;
 
-        if (!other.TryGetComponent(out CreatureHealth creature)) return;
-        _creatureInSight.Add(creature);
-
-        if (creature is not PlayerHealth player) return;
-        if (!IsGoalWithinReach(player)) return;
-
-        NotifyAllies(player);
-        ChangeTarget(player);
+        ChangeSpeed();
+        _health.BattleStart();
     }
 
-    public void OnCreatureExitTrigger(Collider other)
+    public bool CanTakeAction()
     {
-        if (_currentTarget != null) return;
+        if (_actionTimer >= _timeBetweenActions)
+            return true;
 
-        if (!other.TryGetComponent(out CreatureHealth creature)) return;
-        if (!_creatureInSight.Contains(creature)) return;
-        _creatureInSight.Remove(creature);
+        return false;
     }
 
+    public void ChangeStoppingDistance()
+    {
+        switch (_state)
+        {
+            case AIState.Waiting:
+            case AIState.Wandering:
+                _agent.stoppingDistance = _wanderingStoppingDistance;
+                break;
+
+            case AIState.Chase:
+                if (_sight.SeeCurrentTarget)
+                {
+                    _agent.stoppingDistance = _weapon.Weapon.AttackDistance - 1f;
+                    _agent.stoppingDistance = Mathf.Clamp(_agent.stoppingDistance, _minStoppingDistance, _maxStoppingDistance);
+                }
+                else
+                {
+                    _agent.stoppingDistance = _minStoppingDistance;
+                }
+                break;
+        }
+    }
+
+    public bool IsStopped()
+    {
+        if (_agent.remainingDistance > _agent.stoppingDistance)
+            return false;
+
+        return true;
+    }
+
+    #region Overrides
     public override void Push(Vector3 velocity) => Move(velocity);
 
     public override void Move(Vector3 velocity)
@@ -110,7 +133,9 @@ public class EnemyController : CreatureController
         base.InitComponents();
         _agent = GetComponent<NavMeshAgent>();
         _weapon = GetComponent<EnemyWeapon>();
+        _weapon.Init();
     }
+    #endregion /Overrides
 
     private void InitValues()
     {
@@ -120,26 +145,9 @@ public class EnemyController : CreatureController
         _agent.stoppingDistance = _wanderingStoppingDistance;
     }
 
-    private void NotifyAllies(CreatureHealth target)
-    {
-        if (_currentTarget != null) return;
-
-        foreach (CreatureHealth creature in _creatureInSight)
-        {
-            if (creature is not EnemyHealth enemy) continue;
-            enemy.Controller.ChangeTarget(target);
-        }
-    }
-
-    private void ChangeTarget(CreatureHealth creature)
-    {
-        _currentTarget = creature;
-        ChangeSpeed();
-    }
-
     private void ChangeSpeed()
     {
-        if (_currentTarget == null)
+        if (Sight.Target == null)
         {
             _agent.speed = _wanderingSpeed;
             _agent.stoppingDistance = _wanderingStoppingDistance;
@@ -147,89 +155,9 @@ public class EnemyController : CreatureController
         else
         {
             _agent.speed = _walkSpeed;
-            if (_weapon == null)
-            {
-                _agent.stoppingDistance = _minStoppingDistance;
-            }
-            else
-            {
-                SetStoppingDistanceWeapon();
-            }
         }
-    }
 
-    private void SetStoppingDistanceWeapon()
-    {
-        _agent.stoppingDistance = _weapon.Weapon.AttackDistance - 1f;
-        _agent.stoppingDistance = Mathf.Clamp(_agent.stoppingDistance, _minStoppingDistance, _maxStoppingDistance);
-    }
-
-    private void SightUpdate()
-    {
-        if (!CanTakeAction()) return;
-        if (_creatureInSight.Count <= 0) return;
-
-        if (_currentTarget != null)
-        {
-            if (SeeTarget(_currentTarget))
-            {
-                _seeCurrentTarget = true;
-                SetStoppingDistanceWeapon();
-            }
-            else
-            {
-                _seeCurrentTarget = false;
-                _agent.stoppingDistance = _minStoppingDistance;
-            }
-        }
-        else
-        {
-            _seeCurrentTarget = false;
-            for (int i = _creatureInSight.Count - 1; i >= 0; i--)
-            {
-                if (_creatureInSight[i] == null)
-                {
-                    _creatureInSight.RemoveAt(i);
-                    continue;
-                }
-
-                if (_creatureInSight[i] is EnemyHealth) continue;
-                if (!IsGoalWithinReach(_creatureInSight[i])) continue;
-
-                ChangeTarget(_creatureInSight[i]);
-                break;
-            }
-        }
-    }
-
-    private bool IsGoalWithinReach(CreatureHealth enemy)
-    {
-        Vector3 direction = enemy.transform.position - transform.position;
-        if (GetAngle(direction) > _viewingAngle)
-            return false;
-
-        if (!SeeTarget(enemy))
-            return false;
-
-        return true;
-    }
-
-    private bool IsGoalWithinReach(Vector3 position, float maxDistance, out Vector3 navMeshPosition)
-    {
-        navMeshPosition = position;
-        NavMesh.SamplePosition(position, out NavMeshHit hit, maxDistance, NavMesh.AllAreas);
-
-        NavMeshPath path = new();
-        if (!_agent.CalculatePath(hit.position, path))
-            return false;
-
-        navMeshPosition = hit.position;
-        return true;
-    }
-
-    private bool SeeTarget(CreatureHealth enemy)
-    {
-        return !Physics.Linecast(transform.position + Vector3.up, enemy.transform.position + Vector3.up, _groundLayer);
+        ChangeStoppingDistance();
     }
 
     private void WalkUpdate()
@@ -238,31 +166,41 @@ public class EnemyController : CreatureController
         {
             _agent.isStopped = true;
             _animator.SetBool("IsRunning", false);
+            _animator.SetFloat("WalkX", 0f);
+            _animator.SetFloat("WalkZ", 0f);
+
+            if (_state != AIState.Chase)
+                _state = AIState.Waiting;
+
             return;
         }
 
         if (!CanTakeAction()) return;
         _agent.isStopped = false;
         ChangeSpeed();
-        GroundCheckUpdate();
 
-        if (_currentTarget == null)
+        if (Sight.Target == null)
         {
             if (_wanderingStoppedTimer > 0f)
             {
                 _animator.SetBool("IsRunning", false);
+                _animator.SetFloat("WalkX", 0f);
+                _animator.SetFloat("WalkZ", 0f);
                 _wanderingStoppedTimer -= _timeBetweenActions;
+                _state = AIState.Waiting;
                 return;
             }
 
             if (!_wanderingPosSelected)
             {
                 Vector3 targetPos = _spawnedPosition.RandomPointAroundXZ(_wanderingRadius);
-                if (!IsGoalWithinReach(targetPos, _wanderingRadius, out targetPos)) return;
+                if (!_sight.IsGoalWithinReach(targetPos, _wanderingRadius, out targetPos)) return;
 
                 _agent.destination = targetPos;
                 _wanderingPosSelected = true;
                 _animator.SetBool("IsRunning", true);
+                _animator.SetFloat("WalkZ", 1f);
+                _state = AIState.Wandering;
             }
             else
             {
@@ -275,17 +213,22 @@ public class EnemyController : CreatureController
         }
         else
         {
-            _agent.destination = _currentTarget.transform.position;
+            _state = AIState.Chase;
+            _agent.destination = Sight.Target.transform.position;
+
             FlexAction();
 
             float curSpeed = _agent.velocity.magnitude;
-            if (curSpeed >= 0.1f)
+            if (curSpeed >= 0.05f)
             {
                 _animator.SetBool("IsRunning", true);
+                _animator.SetFloat("WalkZ", 1f);
             }
             else
             {
                 _animator.SetBool("IsRunning", false);
+                _animator.SetFloat("WalkX", 0f);
+                _animator.SetFloat("WalkZ", 0f);
             }
         }
     }
@@ -335,7 +278,7 @@ public class EnemyController : CreatureController
 
         if (_flexDirection != Vector3.zero)
         {
-            Vector3 lookDirection = GetLookDirection();
+            Vector3 lookDirection = _sight.GetLookDirection();
             _flexDirection += lookDirection;
             _flexDirection.Normalize();
         }
@@ -346,18 +289,10 @@ public class EnemyController : CreatureController
     private void FlexUpdate()
     {
         if (DisabledMoveInput) return;
-        if (!_seeCurrentTarget) return;
+        if (!_sight.SeeCurrentTarget) return;
         if (_flexTime <= 0f) return;
 
         _agent.Move(_agent.speed * Time.deltaTime * _flexDirection);
-    }
-
-    private bool CanTakeAction()
-    {
-        if (_actionTimer >= _timeBetweenActions)
-            return true;
-
-        return false;
     }
 
     private void ActionTimerUpdate()
@@ -371,49 +306,21 @@ public class EnemyController : CreatureController
         _actionTimer = _timeBetweenActions;
     }
 
-    private void LookUpdate()
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
     {
-        if (DisabledLookInput) return;
-        Vector3 direction = GetLookDirection();
-        float rotationSpeed;
-        if (!IsStopped())
+        Vector3 drawPos;
+        if (Application.isPlaying)
         {
-            float rotationSpeedDelta = Mathf.Clamp01(GetAngle(direction) / _viewingAngle);
-            rotationSpeed = Mathf.Lerp(_minRotationSpeed, _maxRotationSpeed, rotationSpeedDelta);
+            drawPos = _spawnedPosition;
         }
         else
         {
-            rotationSpeed = _maxRotationSpeed;
+            drawPos = transform.position;
         }
 
-        if (direction == Vector3.zero) return;
-        Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(drawPos, _wanderingRadius);
     }
-
-    private Vector3 GetLookDirection()
-    {
-        Vector3 steeringTargetDirection = (_agent.steeringTarget - transform.position).normalized;
-
-        if (_currentTarget == null)
-            return steeringTargetDirection;
-
-        if (_agent.remainingDistance > _agent.stoppingDistance * 2f)
-            return steeringTargetDirection;
-        else
-            return (_currentTarget.transform.position - transform.position).normalized;
-    }
-
-    private float GetAngle(Vector3 direction)
-    {
-        return Vector3.Angle(transform.forward, direction);
-    }
-
-    private bool IsStopped()
-    {
-        if (_agent.remainingDistance > _agent.stoppingDistance)
-            return false;
-
-        return true;
-    }
+#endif
 }

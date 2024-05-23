@@ -9,13 +9,29 @@ public abstract class Weapon : MonoBehaviour
     [SerializeField] protected float _attackDistance;
 
     [Header("Sounds")]
-    [SerializeField] protected List<AudioClip> _impactSounds = new();
+    [SerializeField] protected List<AudioClip> _attackSounds = new();
+
+    [Header("Animation")]
+    [SerializeField] protected AttackAnimation _attackAnimation;
 
     public float Damage => _damage;
     public float AttackRate => _attackRate;
     public float AttackDistance => _attackDistance;
     public CreatureWeapon Owner => _owner;
     public bool CanAttack => _timeToAttack <= 0f;
+    public string AnimationAttack
+    {
+        get
+        {
+            return _attackAnimation switch
+            {
+                AttackAnimation.Bow => "AttackBow",
+                AttackAnimation.Crossbow => "AttackCrossbow",
+                AttackAnimation.Throwable => "AttackThrowable",
+                _ => "AttackSword",
+            };
+        }
+    }
 
     protected CreatureWeapon _owner;
     protected Collider _collider;
@@ -59,6 +75,7 @@ public abstract class Weapon : MonoBehaviour
         if (_owner == null) return;
 
         _timeToAttack = _attackRate;
+        PlaySound(_attackSounds.GetRandom());
     }
 
     public void AttackAnimEvent()
@@ -90,5 +107,13 @@ public abstract class Weapon : MonoBehaviour
         {
             _timeToAttack -= Time.deltaTime;
         }
+    }
+
+    protected void PlaySound(AudioClip clip)
+    {
+        _audioSource.Stop();
+        _audioSource.clip = clip;
+        _audioSource.SetRandomPitchAndVolume(0.9f, 1.1f, 0.6f, 0.7f);
+        _audioSource.Play();
     }
 }

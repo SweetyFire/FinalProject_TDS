@@ -36,7 +36,7 @@ public abstract class AimWeapon : Weapon
             lookPos = (_owner.transform.forward * _maxInAirDistance) + castPos;
         }
 
-        lookPos.y = _attackPoint.position.y;
+        //lookPos.y = _attackPoint.position.y;
         Vector3 direction = (lookPos - _attackPoint.position).normalized;
         _attackPoint.rotation = Quaternion.LookRotation(direction, Vector3.up);
     }

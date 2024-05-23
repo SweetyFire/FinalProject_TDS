@@ -48,6 +48,10 @@ MonoBehaviour:
   _cooldown: 5
   _enableMoveInput: 0
   _enableLookInput: 1
+  _enableAttackInput: 0
+  _castTime: 0
+  _notLookTargetWhileCast: 0
+  _notInterruptible: 0
   OnActivate:
     m_PersistentCalls:
       m_Calls:
@@ -63,10 +67,16 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  OnCooldown:
+  OnCasted:
     m_PersistentCalls:
       m_Calls: []
   OnAllCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnCastInterrupted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnCooldown:
     m_PersistentCalls:
       m_Calls: []
 --- !u!114 &8987026892125094565
@@ -84,7 +94,8 @@ MonoBehaviour:
   OnCompleted:
     m_PersistentCalls:
       m_Calls: []
-  _direction: 6
-  _speed: 5
+  _direction: 1
+  _speed: 1
   _maxDistance: 2
-  _jumpStrength: 14
+  _jumpStrength: 12
+  _jumpDirection: 5

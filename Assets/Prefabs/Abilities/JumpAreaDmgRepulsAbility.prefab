@@ -57,9 +57,6 @@ MonoBehaviour:
   _notInterruptible: 0
   OnActivate:
     m_PersistentCalls:
-      m_Calls: []
-  OnCasted:
-    m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 8987026892125094565}
         m_TargetAssemblyTypeName: AbilityJump, Assembly-CSharp
@@ -73,6 +70,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  OnCasted:
+    m_PersistentCalls:
+      m_Calls: []
   OnAllCompleted:
     m_PersistentCalls:
       m_Calls: []
@@ -121,10 +121,11 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  _direction: 0
-  _speed: 5
-  _maxDistance: 2
-  _jumpStrength: 14
+  _direction: 1
+  _speed: 2
+  _maxDistance: 4
+  _jumpStrength: 12
+  _jumpDirection: 5
 --- !u!114 &-6617224726570277302
 MonoBehaviour:
   m_ObjectHideFlags: 0

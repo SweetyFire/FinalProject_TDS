@@ -19,6 +19,12 @@ public class PlayerHealth : CreatureHealth
 
     protected override void DestroyMe()
     {
+        if (IsAlive)
+        {
+            GameManager.Instance.GameOver();
+        }
+
+        base.DestroyMe();
 
     }
 

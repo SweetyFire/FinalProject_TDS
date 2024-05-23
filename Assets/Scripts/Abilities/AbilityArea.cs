@@ -33,7 +33,7 @@ public abstract class AbilityArea : AbilityBase
             if (controller.Team == _owner.Controller.Team) continue;
 
             if (!noNeedToSee)
-                if (Physics.Linecast(_owner.Controller.Center, controller.Center, _groundMask)) continue;
+                if (Physics.Linecast(_owner.Controller.CenterPosition, controller.CenterPosition, _groundMask)) continue;
 
             action.Invoke(controller);
         }

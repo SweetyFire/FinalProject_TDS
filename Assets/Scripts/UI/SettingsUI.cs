@@ -5,6 +5,15 @@ using TMPro;
 
 public class SettingsUI : MonoBehaviour
 {
+    private const string SAVED_QUALITY_NAME = "graphicsQuality";
+    private const string SAVED_MASTER_VOLUME_NAME = "masterVolume";
+    private const string SAVED_SOUNDFX_VOLUME_NAME = "soundFXVolume";
+    private const string SAVED_MUSIC_VOLUME_NAME = "musicVolume";
+
+    private const string MUSIC_VOLUME_NAME = "Music";
+    private const string MASTER_VOLUME_NAME = "Master";
+    private const string SOUNDFX_VOLUME_NAME = "SoundFX";
+
     [Header("Graphics")]
     [SerializeField] private TMP_Dropdown _qualityDropdown;
 
@@ -20,24 +29,23 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _soundFXText;
     [SerializeField] private Slider _soundFXSlider;
 
-    private const string MUSIC_VOLUME_NAME = "Music";
-    private const string MASTER_VOLUME_NAME = "Master";
-    private const string SOUNDFX_VOLUME_NAME = "SoundFX";
-
-    private void Awake()
+    private void Start()
     {
         InitSettings();
     }
 
     public void SetQualityLevel(int level)
     {
-        QualitySettings.SetQualityLevel(Mathf.Clamp(level, 0, QualitySettings.count));
+        int newValue = Mathf.Clamp(level, 0, QualitySettings.count);
+        QualitySettings.SetQualityLevel(newValue);
+        
     }
 
     public void SetMasterVolume(float volume)
     {
         _mixer.SetFloat(MASTER_VOLUME_NAME, Mathf.Log10(GetClampedSliderValue(volume)) * 20f);
         SetSliderTextPercent(_masterVolumeText, volume);
+        
     }
 
     public void SetMusicVolume(float volume)
@@ -52,26 +60,49 @@ public class SettingsUI : MonoBehaviour
         SetSliderTextPercent(_soundFXText, volume);
     }
 
-    private float GetClampedSliderValue(float volume)
+    public void SaveSettings()
     {
-        return Mathf.Clamp(volume, 0.0001f, 1f);
+        SaveSystem.SetValue(SAVED_QUALITY_NAME, _qualityDropdown.value);
+        SaveSystem.SetValue(SAVED_MASTER_VOLUME_NAME, _masterVolumeSlider.value);
+        SaveSystem.SetValue(SAVED_SOUNDFX_VOLUME_NAME, _soundFXSlider.value);
+        SaveSystem.SetValue(SAVED_MUSIC_VOLUME_NAME, _musicVolumeSlider.value);
+        SaveSystem.Save();
     }
 
     private void InitSettings()
     {
-        _qualityDropdown.value = QualitySettings.GetQualityLevel();
+        int quality;
+        if (!SaveSystem.TryGetInt(SAVED_QUALITY_NAME, out quality))
+            quality = QualitySettings.GetQualityLevel();
 
-        float volume = GetVolume(SOUNDFX_VOLUME_NAME);
-        _masterVolumeSlider.value = volume;
+        _qualityDropdown.SetValueWithoutNotify(quality);
+
+
+        float volume;
+        if (!SaveSystem.TryGetFloat(SAVED_MASTER_VOLUME_NAME, out volume))
+            volume = GetVolume(MASTER_VOLUME_NAME);
+
+        _masterVolumeSlider.SetValueWithoutNotify(volume);
+        SetSliderTextPercent(_masterVolumeText, volume);
+
+
+        if (!SaveSystem.TryGetFloat(SAVED_SOUNDFX_VOLUME_NAME, out volume))
+            volume = GetVolume(SOUNDFX_VOLUME_NAME);
+
+        _soundFXSlider.SetValueWithoutNotify(volume);
         SetSliderTextPercent(_soundFXText, volume);
 
-        volume = GetVolume(MUSIC_VOLUME_NAME);
-        _musicVolumeSlider.value = volume;
-        SetSliderTextPercent(_musicVolumeText, volume);
 
-        volume = GetVolume(MASTER_VOLUME_NAME);
-        _masterVolumeSlider.value = volume;
-        SetSliderTextPercent(_masterVolumeText, volume);
+        if (!SaveSystem.TryGetFloat(SAVED_MUSIC_VOLUME_NAME, out volume))
+            volume = GetVolume(MUSIC_VOLUME_NAME);
+
+        _musicVolumeSlider.SetValueWithoutNotify(volume);
+        SetSliderTextPercent(_musicVolumeText, volume);
+    }
+
+    private float GetClampedSliderValue(float volume)
+    {
+        return Mathf.Clamp(volume, 0.0001f, 1f);
     }
 
     private void SetSliderTextPercent(TextMeshProUGUI text, float value)
@@ -85,5 +116,5 @@ public class SettingsUI : MonoBehaviour
             return Mathf.Pow(10f, volume / 20f);
         else
             return 1f;
-    }    
+    }
 }
