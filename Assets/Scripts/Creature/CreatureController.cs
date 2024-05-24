@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.AI;
 
 public abstract class CreatureController : MonoBehaviour
 {
@@ -84,6 +82,12 @@ public abstract class CreatureController : MonoBehaviour
 
     public void DisableMove()
     {
+        if (_disabledMoveInput) return;
+
+        _pushAction.Reset();
+        CompletePushByTime();
+        CompletePushByDistance();
+
         _disabledMoveInput = true;
     }
 
@@ -123,21 +127,24 @@ public abstract class CreatureController : MonoBehaviour
 
     public MTweenObject MoveTime(VectorDirection direction, float speed, float time, bool enableMoveAfter = true)
     {
-        _pushAction.Reset();
-        _pushVelocity = Vector3.zero;
+        DisableMove();
+
         _pushTimer = time;
-        _pushDirection = direction;
         _pushSpeed = speed;
+        _pushDirection = direction;
+        _pushVelocity = Vector3.zero;
         _enableMoveAfterPush = enableMoveAfter;
         return _pushAction;
     }
 
     public MTweenObject MoveTime(Vector3 velocity, float time, bool enableMoveAfter = true)
     {
-        _pushAction.Reset();
+        DisableMove();
+
+        _pushTimer = time;
         _pushVelocity = velocity;
         _pushSpeed = _pushVelocity.magnitude;
-        _pushTimer = time;
+        _pushDirection = VectorDirection.Zero;
         _enableMoveAfterPush = enableMoveAfter;
         return _pushAction;
     }
@@ -152,25 +159,30 @@ public abstract class CreatureController : MonoBehaviour
         _pushTimer = -1f;
         _pushAction.Complete();
         _pushVelocity = Vector3.zero;
+        _enableMoveAfterPush = false;
+        _pushDirection = VectorDirection.Zero;
     }
 
     public MTweenObject MoveDistance(VectorDirection direction, float speed, float distance, bool enableMoveAfter = true)
     {
-        _pushAction.Reset();
-        _pushVelocity = Vector3.zero;
-        _pushDirection = direction;
-        _pushDistance = distance;
+        DisableMove();
+
         _pushSpeed = speed;
+        _pushDistance = distance;
+        _pushDirection = direction;
+        _pushVelocity = Vector3.zero;
         _enableMoveAfterPush = enableMoveAfter;
         return _pushAction;
     }
 
     public MTweenObject MoveDistance(Vector3 velocity, float distance, bool enableMoveAfter = true)
     {
-        _pushAction.Reset();
+        DisableMove();
+
         _pushVelocity = velocity;
-        _pushSpeed = _pushVelocity.magnitude;
         _pushDistance = distance;
+        _pushSpeed = _pushVelocity.magnitude;
+        _pushDirection = VectorDirection.Zero;
         _enableMoveAfterPush = enableMoveAfter;
         return _pushAction;
     }
@@ -184,7 +196,9 @@ public abstract class CreatureController : MonoBehaviour
 
         _pushDistance = -1f;
         _pushAction.Complete();
+        _enableMoveAfterPush = false;
         _pushVelocity = Vector3.zero;
+        _pushDirection = VectorDirection.Zero;
     }
 
     public Vector3 CalculatePushDirection(VectorDirection direction)
@@ -239,11 +253,35 @@ public abstract class CreatureController : MonoBehaviour
         }
     }
 
+    private Vector3 GetPushVelocity()
+    {
+        if (_pushVelocity == Vector3.zero)
+        {
+            Vector3 velocity = _pushDirection switch
+            {
+                VectorDirection.Look or VectorDirection.Forward => transform.forward,
+                VectorDirection.Backward => -transform.forward,
+                VectorDirection.Right => transform.right,
+                VectorDirection.Left => -transform.right,
+                VectorDirection.Up => transform.up,
+                VectorDirection.Down => -transform.up,
+                VectorDirection.Movement => GetMoveDirection(),
+                _ => Vector3.zero,
+            };
+
+            velocity *= _pushSpeed;
+            return velocity;
+        }
+        else
+            return _pushVelocity;
+    }
+
     public abstract void Push(Vector3 velocity);
     public abstract void Move(Vector3 velocity);
     public abstract void Move(float xVelocity, float zVelocity);
     public abstract void MoveToMovementDirection(float speed);
     public abstract void MoveToLookDirection(float speed);
+    protected abstract Vector3 GetMoveDirection();
 
     protected void MoveUpdate(float deltaTime)
     {
@@ -251,7 +289,7 @@ public abstract class CreatureController : MonoBehaviour
         {
             PushByTime(deltaTime);
         }
-        else if (_pushTimer > -1f)
+        else
         {
             CompletePushByTime();
         }
@@ -260,7 +298,7 @@ public abstract class CreatureController : MonoBehaviour
         {
             PushByDistance(deltaTime);
         }
-        else if (_pushDistance > -1f)
+        else
         {
             CompletePushByDistance();
         }
@@ -268,24 +306,14 @@ public abstract class CreatureController : MonoBehaviour
 
     private void PushByDistance(float deltaTime)
     {
-        DisableMove();
-        if (_pushVelocity == Vector3.zero)
-            MoveToPushDirection();
-        else
-            Move(_pushVelocity);
-
+        Move(GetPushVelocity());
         _pushDistance -= _pushSpeed * deltaTime;
         _pushAction.Update();
     }
 
     private void PushByTime(float deltaTime)
     {
-        DisableMove();
-        if (_pushVelocity == Vector3.zero)
-            MoveToPushDirection();
-        else
-            Move(_pushVelocity);
-
+        Move(GetPushVelocity());
         _pushTimer -= deltaTime;
         _pushAction.Update();
     }

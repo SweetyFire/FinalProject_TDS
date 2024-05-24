@@ -306,6 +306,8 @@ public class EnemyController : CreatureController
         _actionTimer = _timeBetweenActions;
     }
 
+    protected override Vector3 GetMoveDirection() => _agent.velocity.normalized;
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {

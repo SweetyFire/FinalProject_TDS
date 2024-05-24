@@ -386,6 +386,8 @@ public class PlayerController : CreatureController
         OnTriggerObjectExit(_currentToggleObject);
     }
 
+    protected override Vector3 GetMoveDirection() => _moveDirection;
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
