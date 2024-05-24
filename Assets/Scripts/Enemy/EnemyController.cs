@@ -104,6 +104,12 @@ public class EnemyController : CreatureController
         return true;
     }
 
+    public void StopMove()
+    {
+        _agent.destination = transform.position;
+        _agent.isStopped = true;
+    }
+
     #region Overrides
     public override void Push(Vector3 velocity) => Move(velocity);
 

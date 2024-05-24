@@ -23,5 +23,6 @@ public class EnemyHealth : CreatureHealth
         base.DestroyMe();
         _enemyController.enabled = false;
         _enemyController.Sight.enabled = false;
+        _enemyController.StopMove();
     }
 }
