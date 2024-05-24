@@ -93,6 +93,11 @@ public class GameplayUI : InitializableBehavior
         GameManager.Instance.OpenScene(0);
     }
 
+    public void SaveGame()
+    {
+        GameLoader.Instance.Save();
+    }
+
     private void GameOver()
     {
         if (_gameplayUI.gameObject.activeSelf)
